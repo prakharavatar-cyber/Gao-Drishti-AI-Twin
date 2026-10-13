@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GaoDrishti AI – Smart Village Twin v4</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#e3f4f1;--pane:#ffffff;--ink:#0d2a38;--mute:#4b6a76;--line:#bfe0dc;--ok:#12a150;--warn:#f08c00;--crit:#e5322d;--unk:#6f8794;--acc:#0a7fc2;--acc2:#12b5a6}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#071a2b;--pane:#0e2840;--ink:#eaf6ff;--mute:#9cc0d6;--line:#1f4766;--ok:#35e08a;--warn:#ffc233;--crit:#ff5f57;--unk:#8fa8b8;--acc:#3ec1ff;--acc2:#2ee6c5}}
+:root[data-theme="dark"]{--bg:#071a2b;--pane:#0e2840;--ink:#eaf6ff;--mute:#9cc0d6;--line:#1f4766;--ok:#35e08a;--warn:#ffc233;--crit:#ff5f57;--unk:#8fa8b8;--acc:#3ec1ff;--acc2:#2ee6c5}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--ink);font:14px/1.45 "Segoe UI",system-ui,-apple-system,Roboto,sans-serif}
+*{box-sizing:border-box}
+#app{height:100%;display:flex;flex-direction:column}
+#stage{position:relative;flex:1 1 55%;min-height:240px;overflow:hidden}
+#stage canvas{display:block;width:100%;height:100%;touch-action:none}
+#stage{background:linear-gradient(#2f9bea,#8fd3ff 38%,#d9f4ff 62%,#fff1c9 100%)}#stage.night{background:linear-gradient(#060b2a,#14246b 45%,#2a3f9a 75%,#5b4aa8)}#stage:not(.night) #hud b{color:#07324d}#stage:not(.night) #hud span,#stage:not(.night) #hint{color:#1d5575}#stage.night #hud b,#stage.night #hud span,#stage.night #hint{color:#f2f8ff}
+#hud{position:absolute;left:12px;top:10px;pointer-events:none}
+#hud b{font-size:16px;display:block}#hud span{color:var(--mute);font-size:12px}
+#hint{position:absolute;left:12px;bottom:8px;color:var(--mute);font-size:12px;pointer-events:none}
+#panel{flex:1 1 45%;overflow:auto;background:var(--pane);border-top:1px solid var(--line);padding:12px 14px}
+@media (min-width:860px){#app{flex-direction:row}#panel{flex:0 0 380px;border-top:0;border-left:1px solid var(--line)}}
+#rp,#cp{position:absolute;inset:48px 10px 10px;background:var(--pane);border:1px solid var(--line);border-radius:8px;overflow:auto;padding:10px 12px;z-index:5;font-size:13px}
+.tw{overflow-x:auto}table{border-collapse:collapse;width:100%;min-width:800px}th,td{text-align:left;padding:6px 8px;border-top:1px solid var(--line);vertical-align:top}th{color:var(--mute);font-weight:600}.y{color:var(--ok);font-weight:600}.n{color:var(--mute)}.rh{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-bottom:6px;flex-wrap:wrap}
+pre{white-space:pre-wrap;font:inherit;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:10px;margin:8px 0}
+h3{margin:14px 0 6px;font-size:13px;color:var(--mute);font-weight:600}
+h3:first-child{margin-top:0}
+.row{display:flex;flex-wrap:wrap;gap:6px}
+button{font:inherit;color:var(--ink);background:transparent;border:1px solid var(--line);border-radius:6px;padding:6px 10px;cursor:pointer}
+button:hover{border-color:var(--acc)}button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+button.go{background:var(--crit);color:#fff;border-color:var(--crit)}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px}
+.vals{display:flex;gap:14px;margin:6px 0}.vals div{min-width:60px}.vals small{display:block;color:var(--mute)}.vals strong{font-size:18px}
+.step{display:grid;grid-template-columns:78px 1fr;gap:8px;padding:6px 0;border-top:1px solid var(--line)}
+.step i{font-style:normal;color:var(--mute)}
+.wo{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-top:1px solid var(--line)}
+.kpi{display:flex;gap:18px}.kpi strong{font-size:20px;display:block}.kpi small{color:var(--mute)}
+.note{color:var(--mute);font-size:12px;margin-top:10px}
+</style></head><body>
+<div id="app">
+<div id="stage"><div id="hud"><b>GaoDrishti AI · Smart Village twin v5 · Nagar Nigam</b><span>Simulated village · wells, hand pumps, groundwater, rain pits, drains</span><div id="say" style="display:none;margin-top:6px;font-size:13px;max-width:330px;background:var(--pane);border:1px solid var(--line);border-radius:6px;padding:6px 8px"></div></div>
+<button id="rb" data-a="o" class="on" style="position:absolute;right:12px;top:10px;z-index:6">Pradhan office (0)</button><div id="rp" style="display:none"></div>
+<button id="cb" data-a="co" style="position:absolute;right:170px;top:10px;z-index:6">Citizen app</button><div id="cp" style="display:none"></div>
+<div id="hint">Drag to rotate · scroll to zoom · click a glowing marker or a pipe, pit or well</div></div>
+<div id="panel">
+<h3>Inject a scenario</h3>
+<div class="row" id="scen">
+<button data-a="f" data-k="wq">Contaminate water</button>
+<button data-a="f" data-k="dr">Block drain</button>
+<button data-a="f" data-k="rd">Pothole: main road</button>
+<button data-a="f" data-k="rd2">Pothole: east lane</button>
+<button data-a="f" data-k="rd3">Pothole: north road</button>
+<button data-a="f" data-k="sl1">Lights fail: main road</button>
+<button data-a="f" data-k="sl2">Lights fail: east lane</button>
+<button data-a="f" data-k="sl3">Lights fail: north road</button>
+<button data-a="f" data-k="sl4">Lights fail: Basti road</button>
+<button data-a="f" data-k="cm7">Camera fails: Basti road</button>
+<button data-a="ng">Day / night</button>
+<button data-a="f" data-k="wl1">Open well drying</button>
+<button data-a="f" data-k="wl2">Borewell over-pumped</button>
+<button data-a="x" data-k="wq">Fail water sensor</button>
+<button data-a="r">Reset all</button>
+<button data-a="d" class="on">Run guided demo</button></div>
+<div id="tm"></div>
+<h3>Assets</h3><div class="row" id="assets"></div>
+<div id="sel"></div>
+<h3>Work orders</h3><div id="wos"></div>
+<h3>Response</h3>
+<div class="kpi"><div><strong id="k1">0</strong><small>active alerts</small></div><div><strong id="k2">–</strong><small>avg detection → dispatch</small></div><div><strong id="k3">100</strong><small>village health</small></div></div>
+<div class="note">All data here is simulated for the Ideathon demo. Current practice is complaint-driven, so the comparison figure is measured on your pilot village later, not claimed here.</div>
+</div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const C={ok:'#12a150',warn:'#f59e0b',crit:'#ef3b36',unk:'#7d93a0'};
+const cl=(v,a,b)=>Math.max(a,Math.min(b,v)),rn=(a,b)=>a+Math.random()*(b-a);
+const S={
+ wq:{id:'WQ-01',name:'Water tank · quality node',pop:420,base:{pH:7.2,TDS:300,Turb:2},v:{},h:[],fault:0,failed:0,conf:100,wo:null,t0:0},
+ dr:{id:'DR-01',name:'Main drain · flow node',pop:260,base:{Flow:60,Level:30},v:{},h:[],fault:0,failed:0,conf:100,wo:null,t0:0},
+ rd:{id:'RD-01',name:'Main road · camera (CV)',pop:600,base:{Pothole:0.05},v:{},h:[],fault:0,failed:0,conf:100,wo:null,t0:0},
+ rd2:{id:'RD-02',name:'East lane · camera (CV)',pop:350,base:{Pothole:0.05},v:{},h:[],fault:0,failed:0,conf:100,wo:null,t0:0},
+ rd3:{id:'RD-03',name:'North road · camera (CV)',pop:300,base:{Pothole:0.05},v:{},h:[],fault:0,failed:0,conf:100,wo:null,t0:0},
+ sl1:{id:'SL-01',name:'Main road · solar lights',pop:600,base:{Light:88,Battery:82},v:{},h:[],fault:0,failed:0,conf:100,wo:null,t0:0},
+ sl2:{id:'SL-02',name:'East lane · solar lights',pop:350,base:{Light:88,Battery:82},v:{},h:[],fault:0,failed:0,conf:100,wo:null,t0:0},
+ sl3:{id:'SL-03',name:'North road · solar lights',pop:300,base:{Light:88,Battery:82},v:{},h:[],fault:0,failed:0,conf:100,wo:null,t0:0},
+ sl4:{id:'SL-04',name:'Basti road · solar lights',pop:900,base:{Light:88,Battery:82},v:{},h:[],fault:0,failed:0,conf:100,wo:null,t0:0},
+ wl1:{id:'WL-01',name:'Open well · level node',pop:300,base:{Level:68,TDS:320},v:{},h:[],fault:0,failed:0,conf:100,wo:null,t0:0},
+ wl2:{id:'WL-02',name:'Borewell · level node',pop:380,base:{Level:68,TDS:320},v:{},h:[],fault:0,failed:0,conf:100,wo:null,t0:0}};
+const mk_=(id,name,pop,base)=>({id,name,pop,base,v:{},h:[],fault:0,failed:0,conf:100,wo:null,t0:0}),LV={Level:68,TDS:320},GB={Depth:8,TDS:350},PB={Fill:12,Turb:3,TDS:120},DB={Flow:60,Level:25};
+Object.assign(S,{wl3:mk_('WL-03','Open well 2 · level node',280,LV),wl4:mk_('WL-04','Open well 3 · level node',240,LV),wl5:mk_('HP-01','Hand pump 1 · level node',200,LV),wl6:mk_('HP-02','Hand pump 2 · level node',180,LV),wl7:mk_('HP-03','Hand pump 3 · level node',160,LV),wl8:mk_('HP-04','Hand pump 4 · level node',140,LV),
+gw1:mk_('GW-01','Water table sensor 1 · underground',420,GB),gw2:mk_('GW-02','Water table sensor 2 · underground',380,GB),gw3:mk_('GW-03','Water table sensor 3 · underground',300,GB),
+pt1:mk_('RH-01','Rainwater pit 1 · west common',420,PB),pt2:mk_('RH-02','Rainwater pit 2 · east common',350,PB),pt3:mk_('RH-03','Rainwater pit 3 · Pradhan office roof',300,PB),
+ud1:mk_('UD-01','Underground drain 1 · main road line',500,DB),ud2:mk_('UD-02','Underground drain 2 · centre line',420,DB),ud3:mk_('UD-03','Underground drain 3 · east line',350,DB),ud4:mk_('UD-04','Underground drain 4 · north line',380,DB),ud5:mk_('UD-05','Underground drain 5 · west line to outfall',450,DB)});
+for(const k in S)S[k].v={...S[k].base};
+let sel='wq',WO=[],woN=1,resp=[],LOG=[],LOGN=1,repOpen=false,vw=null,tpl=false,night=true,citOpen=false,cf={t:'p',r:'1',ph:null,msg:''};
+function step(k){const s=S[k],v=s.v;
+ if(s.failed){s.conf=Math.max(30,s.conf-4);return}
+ s.conf=100;
+ if(k[0]==='w'&&k!=='wq'){if(AUTO){if(v.Level<40&&PUMP[k]){PUMP[k]=false;RAT[k]=1;AW[k]=1;ev(k,'Pump auto-stopped at '+Math.round(v.Level)+'%. Rationing started (supply 6-8 am and 6-8 pm). Report and SMS sent, work order requested.')}else if(v.Level>60&&!PUMP[k]){PUMP[k]=true;RAT[k]=0;ev(k,'Level back to '+Math.round(v.Level)+'%. Pump resumed, rationing lifted.')}}const p=PUMP[k];
+  if(s.fault){v.Level=Math.max(2,v.Level-(p?2:.6));v.TDS=Math.min(900,v.TDS+(p?6:1.5))}
+  else{v.Level+=((p?66:80)-v.Level)*.1+rn(-.3,.3);v.TDS+=(320-v.TDS)*.15+rn(-3,3)}}
+ if(k==='wq'){if(s.fault){v.TDS=Math.min(900,v.TDS+rn(18,30));v.Turb=Math.min(12,v.Turb+.35);v.pH=Math.max(6.1,v.pH-.03)}
+  else{v.TDS+=(300-v.TDS)*.2+rn(-4,4);v.Turb+=(2-v.Turb)*.2+rn(-.1,.1);v.pH+=(7.2-v.pH)*.2+rn(-.02,.02)}}
+ if(k==='dr'){if(s.fault){v.Flow=Math.max(8,v.Flow-3);v.Level=Math.min(100,v.Level+2.5)}
+  else{v.Flow+=(60-v.Flow)*.25+rn(-1,1);v.Level+=(30-v.Level)*.25+rn(-.6,.6)}}
+ if(k[0]==='r'){v.Pothole+=((s.fault?.92:.05)-v.Pothole)*.35+rn(-.01,.01)}
+ if(k[0]==='s'){if(s.fault){v.Light=Math.max(3,v.Light-18);v.Battery=Math.max(10,v.Battery-6)}else{v.Light+=(88-v.Light)*.3+rn(-1,1);v.Battery+=(82-v.Battery)*.2+rn(-.5,.5)}}
+ s.h.push({...v});if(s.h.length>40)s.h.shift()}
+function slope(s,f){const h=s.h;if(h.length<4)return 0;const n=Math.min(6,h.length);return(h[h.length-1][f]-h[h.length-n][f])/(n-1)}
+function assess(k){const s=S[k],v=s.v;let st='ok',risk=0,det='All readings normal.',pred='No trend toward a threshold.',act='No action needed.';
+ if(k==='wq'){const bad=v.pH<6.5||v.pH>8.5||v.TDS>500||v.Turb>5,w=v.TDS>400||v.Turb>3.5||v.pH<6.8;
+  risk=cl(Math.round(Math.max((v.TDS-300)/6,(v.Turb-2)*15,(7.2-v.pH)*60)),0,100);st=bad?'crit':w?'warn':'ok';
+  if(st!=='ok')det='Water quality anomaly: '+(v.TDS>400?'high TDS ':'')+(v.Turb>3.5?'high turbidity ':'')+(v.pH<6.8?'low pH':'');
+  const sl=slope(s,'TDS');if(bad)pred='Limit already crossed. Tank use is unsafe for drinking.';else if(sl>1)pred='TDS reaches 500 mg/L in about '+Math.round((500-v.TDS)/sl)+' min.';
+  if(st!=='ok')act='Stop supply from this tank, collect a lab sample, and flush the line.'}
+ if(k==='dr'){const bad=v.Flow<30&&v.Level>60,w=v.Flow<45||v.Level>50;
+  risk=cl(Math.round((60-v.Flow)*1.2+(v.Level-30)*.8),0,100);st=bad?'crit':w?'warn':'ok';
+  if(st!=='ok')det='Compound signal: flow falling while water level rises (blockage pattern).';
+  const sl=slope(s,'Level');if(sl>.5)pred='Overflow in about '+Math.round((100-v.Level)/sl)+' min at the current rise.';
+  if(st!=='ok')act='Send the sanitation crew to clear the drain near this node.'}
+ if(k[0]==='r'){const p=v.Pothole;risk=Math.round(p*100);st=p>.6?'crit':p>.3?'warn':'ok';
+  if(st!=='ok')det='Pothole detected by camera, confidence '+Math.round(p*100)+'%.';
+  if(st!=='ok'){pred='Likely to widen with the next rain. Traffic risk on a high-use road.';act='Schedule patching by the Block road team.'}}
+ if(k[0]==='s'){const bad=v.Light<20,w=v.Light<50,cam={sl1:'RD-01',sl2:'RD-02',sl3:'RD-03',sl4:'CM-07'}[k];risk=cl(Math.round((88-v.Light)*1.1),0,100);st=bad?'crit':w?'warn':'ok';
+  if(st!=='ok')det='Camera '+cam+' sees unlit street lights: brightness '+Math.round(v.Light)+'%, battery '+Math.round(v.Battery)+'%.';
+  if(bad)pred='The street stays dark tonight, raising the risk of accidents and theft.';else if(st==='warn')pred='Brightness is falling. The lights will go dark soon.';
+  if(st!=='ok')act='Send an electrician to check the solar panel and battery, then replace faulty lamps.'}
+ if(k[0]==='w'&&k!=='wq'){const bad=v.Level<20||v.TDS>600,w=v.Level<40||v.TDS>450;risk=cl(Math.round(Math.max((68-v.Level)*2.2,(v.TDS-320)/3)),0,100);st=bad?'crit':w?'warn':'ok';
+  if(st!=='ok')det='Groundwater '+(v.Level<40?'level is low. ':'')+(v.TDS>450?'Salinity is rising.':'')+(RAT[k]?' Supply is rationed to fixed hours.':'');
+  const sl=slope(s,'Level');if(bad)pred='The well is close to dry or unsafe. Supply must be rationed.';else if(sl<-.3)pred='Level reaches the dry mark in about '+Math.round((v.Level-20)/-sl)+' min at this draw rate.';
+  if(st!=='ok')act='Pause pumping, ration water to drinking use, and start recharge (rainwater harvesting, check dam).'}
+ if(s.failed){st='unk';det='Sensor offline. Showing last known values as estimates.';pred='Predictions paused until fresh data arrives.';act='Dispatch a technician and cross-check with the nearest working node.'}
+ const sc=risk*(.5+s.pop/1200),pr=st==='ok'?'–':st==='unk'?'P2':sc>=55?'P1':sc>=30?'P2':'P3';
+ return{st,risk,det,pred,act,pr}}
+function fmt(k,f){const v=S[k].v[f];return f==='Pothole'?Math.round(v*100)+'%':f==='pH'||f==='Turb'?v.toFixed(1):Math.round(v)}
+const unit={pH:'pH',TDS:'TDS mg/L',Turb:'Turbidity NTU',Flow:'Flow L/min',Level:'Level %',Pothole:'Pothole conf.',Light:'Brightness %',Battery:'Battery %',Depth:'Water table depth (m)',Fill:'Pit fill %'};
+function render(){const A={};let alerts=0;for(const k in S){A[k]=assess(k);if(A[k].st!=='ok'){alerts++;if(!S[k].t0)S[k].t0=Date.now();if(!S[k].log){const e={n:LOGN++,k,problem:A[k].det.trim(),arose:Date.now(),wo:null,ver:null,done:null,pr:A[k].pr,risk:A[k].risk,pred:A[k].pred,act:A[k].act,vals:Object.keys(S[k].v).map(f=>unit[f]+' '+fmt(k,f)).join(', ')};LOG.push(e);S[k].log=e;autoSend(e)}else if(S[k].log.wo===null)S[k].log.pr=A[k].pr}else{S[k].t0=0;S[k].log=null}}
+ document.getElementById('assets').innerHTML=Object.keys(S).map(k=>`<button data-a="s" data-k="${k}" class="${k===sel?'on':''}"><span class="dot" style="background:${C[A[k].st]}"></span>${S[k].id}</button>`).join('');
+ const s=S[sel],a=A[sel];
+ document.getElementById('sel').innerHTML=`<h3>${s.name}</h3>
+ <div class="vals">${Object.keys(s.v).map(f=>`<div><small>${unit[f]}</small><strong>${fmt(sel,f)}</strong></div>`).join('')}
+ <div><small>Data confidence</small><strong>${Math.round(s.conf)}%</strong></div></div>
+ <canvas id="sp" width="340" height="56" style="width:100%;height:56px"></canvas>
+ <div class="step"><i>Detect</i><span>${a.det}</span></div>
+ <div class="step"><i>Risk</i><span>${a.risk}/100 · ${{ok:'Normal',warn:'Watch',crit:'Critical',unk:'Unknown'}[a.st]}</span></div>
+ <div class="step"><i>Predict</i><span>${a.pred}</span></div>
+ <div class="step"><i>Priority</i><span>${a.pr} (severity × people served: ${s.pop})</span></div>
+ <div class="step"><i>Action</i><span>${a.act}</span></div>
+ ${a.st!=='ok'&&!s.wo&&!(s.log&&s.log.done)?`<div style="margin-top:8px"><button class="go" data-a="w" data-k="${sel}">Create work order</button></div>`:''}
+ ${s.log?`<div style="margin-top:6px"><button data-a="v" data-i="${s.log.n}">Draft report for SDM office</button></div>`:''}`;
+ spark();document.getElementById('wos').innerHTML=WO.length?WO.map((w,i)=>`<div class="wo"><span><b>WO-${w.n}</b> ${S[w.k].id} · ${w.pr} · ${w.st}</span>${w.st!=='Fixed'?`<button data-a="n" data-i="${i}">${w.st==='Created'?'Officer verifies':'Mark fixed'}</button>`:''}</div>`).join(''):'<div class="note">None yet. Select an asset with an alert and create one.</div>';
+ document.getElementById('k1').textContent=alerts;document.getElementById('k3').textContent=Math.round(100-Object.keys(A).reduce((x,y)=>x+(A[y].st==='unk'?40:A[y].risk)*S[y].pop,0)/Object.keys(S).reduce((x,y)=>x+S[y].pop,0));
+ document.getElementById('k2').textContent=resp.length?Math.round(resp.reduce((x,y)=>x+y,0)/resp.length)+' s':'–';
+ reports();return A}
+function act(a,k,i){
+ if(a==='s')sel=k;
+ if(a==='f'){S[k].fault=1;sel=k}
+ if(a==='x'){S[k].failed=1;sel=k}
+ if(a==='r'){dt.forEach(clearTimeout);say('');for(const q in S){Object.assign(S[q],{fault:0,failed:0,conf:100,wo:null,t0:0,h:[],log:null});S[q].v={...S[q].base}}WO=[];LOG=[];LOGN=1;vw=null}
+ if(a==='w'){const p=assess(k).pr;WO.push({n:woN++,k,pr:p,st:'Created'});S[k].wo=1;{const e=S[k].log;if(e&&e.wo===null){e.wo=WO.length-1;e.pr=p}}if(S[k].t0)resp.push((Date.now()-S[k].t0)/1000)}
+ if(a==='n'){const w=WO[+i],e=LOG.find(x=>x.wo===+i);if(w.st==='Created'){w.st='Verified';if(e)e.ver=Date.now()}else{w.st='Fixed';const s=S[w.k];s.fault=0;s.failed=0;s.wo=null;if(e)e.done=Date.now()}}
+if(a==='o'){repOpen=!repOpen;if(repOpen){citOpen=false;citizen()}}if(a==='v'){vw=+i;repOpen=true;citOpen=false;citizen()}
+ if(a==='co'){citOpen=!citOpen;if(citOpen)repOpen=false;citizen()}if(a==='cc'){citOpen=false;citizen()}
+ if(a==='ct'){cf.t=i;cf.msg='';citizen()}if(a==='cr'){cf.r=i;cf.msg='';citizen()}if(a==='cd'){cf.ph=sample();citizen()}if(a==='cs')submitC();if(a==='b')vw=null;if(a==='ng'){night=!night;setNight()}if(a==='t')tpl=!tpl;
+ if(a==='m'){const e=LOG.find(x=>x.n===+i);if(e&&!e.sent){e.sent=Date.now();sendPkt(e.k);setTimeout(()=>{e.deliv=Date.now();update()},2500);setTimeout(()=>{e.ack=Date.now();update()},7000)}}if(a==='c')repOpen=false;
+ if(a==='d')return demo();
+ update()}
+document.addEventListener('click',e=>{const b=e.target.closest('button');if(b)act(b.dataset.a,b.dataset.k,b.dataset.i)});
+let dt=[];
+function say(t){const e=document.getElementById('say');e.style.display=t?'block':'none';e.textContent=t||''}
+function demo(){dt.forEach(clearTimeout);dt=[];act('r');
+ const q=[[500,()=>{act('f','wq');say('1 · Sensor reading: TDS starts climbing at the tank node.')}],
+ [5000,()=>say('2 · AI flags the anomaly, scores the risk and predicts when the limit is crossed.')],
+ [8500,()=>{act('w','wq');say('3 · Official creates a work order from the twin. Detection to dispatch time is logged.')}],
+ [11500,()=>{act('n','wq',0);say('4 · Officer verifies the alert on site.')}],
+ [14000,()=>{act('n','wq',0);say('5 · Maintenance done. Record updated, node back to normal.')}],
+ [15500,()=>{say('6 · Every report is sent automatically to the SDM office and the Pradhan office, and an SMS goes to all villagers. Open the Pradhan office sheet to see it.')}],
+ [17000,()=>{act('f','dr');say('7 · New case: drain flow drops while level rises. Compound blockage risk.')}],
+ [23000,()=>{act('x','wq');say('8 · Sensor failure: the twin keeps working with estimates and lower confidence.')}],
+ [29000,()=>{act('f','sl1');say('9 · Solar street lights on the main road go dark. The road camera detects it and raises the alert.')}],
+ [36000,()=>{cf.t='p';cf.r='2';cf.ph=sample();submitC();say('10 · A villager reports a pothole with a photo. Report to SDM and Pradhan, SMS to the village, and a work order is created automatically.')}],
+ [44000,()=>say('')]];
+ q.forEach(([t,f])=>dt.push(setTimeout(f,t)))}
+const VILL=1240;
+function autoSend(e){e.sent=Date.now();sendPkt(e.k,OFF);sendPkt(e.k,PRD);for(let q=0;q<6;q++)sendPkt(e.k,HP[(e.n*7+q*5)%HP.length],0x4cc582);
+ setTimeout(()=>{e.pdr=Date.now();update()},1200);setTimeout(()=>{e.sms=Date.now();update()},2200);setTimeout(()=>{e.deliv=Date.now();update()},2500);setTimeout(()=>{e.ack=Date.now();update()},7000);
+ if(e.src==='citizen')setTimeout(()=>{if(LOG.includes(e)&&e.wo===null&&!e.done)act('w',e.k)},3000)}
+function sample(){const c=document.createElement('canvas');c.width=240;c.height=140;const g=c.getContext('2d');g.fillStyle='#4d5357';g.fillRect(0,0,240,140);g.fillStyle='#151515';g.beginPath();g.ellipse(120,80,50,22,0,0,7);g.fill();g.fillStyle='#fff';g.font='12px sans-serif';g.fillText('Sample photo (demo)',8,132);return c.toDataURL()}
+function citizen(){const c=document.getElementById('cp');c.style.display=citOpen?'block':'none';if(!citOpen)return;
+ const on=(a,v,x)=>`<button data-a="${a}" data-i="${v}" class="${x===v?'on':''}">`;
+ c.innerHTML=`<div class="rh"><b>Citizen app · report a problem</b><button data-a="cc">Close</button></div>
+ <div class="n">1. What is the problem?</div><div class="row">${on('ct','p',cf.t)}Pothole</button>${on('ct','l',cf.t)}Street light not working</button></div>
+ <div class="n" style="margin-top:8px">2. Which road?</div><div class="row">${on('cr','1',cf.r)}Main road</button>${on('cr','2',cf.r)}East lane</button>${on('cr','3',cf.r)}North road</button>${cf.t==='l'?on('cr','4',cf.r)+'Basti road</button>':''}</div>
+ <div class="n" style="margin-top:8px">3. Take a photo</div><input type="file" id="cph" accept="image/*" capture="environment"> <button data-a="cd">Use sample photo</button><br>${cf.ph?`<img src="${cf.ph}" style="max-width:200px;border-radius:6px;margin-top:6px">`:''}
+ <div style="margin-top:10px"><button class="go" data-a="cs">Submit complaint</button></div><div style="margin-top:8px">${cf.msg}</div>
+ <div class="n" style="margin-top:8px">Demo only: the photo stays on this device. The complaint becomes a report, goes to the SDM office and the Pradhan office, an SMS goes to all villagers, and a work order is created automatically.</div>`}
+document.addEventListener('change',e=>{if(e.target.id==='cph'&&e.target.files[0]){cf.ph=URL.createObjectURL(e.target.files[0]);citizen()}});
+function submitC(){if(!cf.ph){cf.msg='<span class="n">Please add a photo first.</span>';citizen();return}
+ const k=(cf.t==='p'?['rd','rd2','rd3'][Math.min(+cf.r,3)-1]:['sl1','sl2','sl3','sl4'][+cf.r-1]),s=S[k],old=s.log&&!s.log.done?s.log:null;
+ if(old){old.photo=cf.ph;cf.msg='<span class="y">Already reported (report #'+old.n+'). Your photo was added to it.</span>'}
+ else{s.fault=1;if(k[0]==='r')s.v.Pothole=.9;else{s.v.Light=10;s.v.Battery=25}const a=assess(k);
+  const e={n:LOGN++,k,src:'citizen',photo:cf.ph,problem:'Citizen complaint: '+(cf.t==='p'?'pothole':'street lights not working')+' on '+s.name.split(' · ')[0]+', reported with a photo.',arose:Date.now(),wo:null,ver:null,done:null,pr:a.pr,risk:a.risk,pred:a.pred,act:a.act,vals:Object.keys(s.v).map(f=>unit[f]+' '+fmt(k,f)).join(', ')};
+  LOG.push(e);s.log=e;autoSend(e);cf.msg='<span class="y">Complaint received. Report #'+e.n+' was sent to the SDM office and the Pradhan office, an SMS went to all villagers, and a work order will be created automatically.</span>'}
+ cf.ph=null;citizen();update()}
+const TPL=`To: The Sub-Divisional Magistrate (SDM), {sdm_office}
+From: Gram Panchayat {village}, through GaoDrishti AI
+Ref: {ref}    Date: {date}
+Subject: {priority} priority: {issue} at {asset}
+
+Respected Sir/Madam,
+
+Our village monitoring system detected the following at {time}.
+Problem: {problem}
+Readings: {readings}
+AI risk score: {risk}/100. Forecast: {forecast}
+People affected: about {people}
+Recommended action: {action}
+Officer verification: {verified}
+Work order: {wo}
+
+We request your office to {request}.
+
+Regards,
+Gram Panchayat {village}
+Generated by GaoDrishti AI`;
+function fillV(e){const s=S[e.k],w=e.wo!==null?WO[e.wo]:null,off=e.problem.startsWith('Sensor offline');
+ const iss=off?'sensor outage':e.k[0]==='w'&&e.k!=='wq'?'well water level alert':e.k==='wq'?'water quality alert':e.k==='dr'?'drain blockage risk':e.k[0]==='s'?'street lights not working':'pothole on road';
+ const rq=off?'approve a technician visit to restore the sensor':e.k[0]==='w'&&e.k!=='wq'?'approve pumping limits and groundwater recharge works for the well':e.k==='wq'?'send a water-testing team and arrange safe drinking water until the tank is cleared':e.k==='dr'?'sanction sanitation support to clear the drain before it overflows':e.k[0]==='s'?'approve an electrician visit and replacement of faulty solar lamps':'approve road patching for the reported potholes';
+ return{sdm_office:'Demo Tehsil',village:'Demo Village',ref:'GDAI/'+new Date().getFullYear()+'/'+String(e.n).padStart(3,'0'),date:new Date().toLocaleDateString(),priority:e.pr,issue:iss,asset:s.name.split(' · ')[0]+' ('+s.id+')',time:tm(e.arose),problem:e.problem,readings:e.vals,risk:e.risk,forecast:e.pred,people:s.pop,action:e.act,verified:e.ver?'Verified on site at '+tm(e.ver):'Awaiting officer verification',wo:w?'WO-'+w.n+' ('+w.st+')':'Not yet created',request:rq}}
+function letter(r){const e=LOG.find(x=>x.n===vw);if(!e){vw=null;return false}
+ const v=fillV(e),txt=TPL.replace(/\{(\w+)\}/g,(m,k)=>tpl?m:(v[k]??m)),sms=`GaoDrishti AI ${v.priority}: ${v.issue} at ${v.asset}. Risk ${v.risk}/100. Ref ${v.ref}. Copies sent to SDM office and Pradhan office. Work order: ${v.wo}.`;
+ const st=`<div><span class="y">Drafted</span> by AI ${tm(e.arose)}${e.src==='citizen'?' from a citizen complaint':''}</div><div>Copy 1 to SDM office: ${e.ack?`<span class="y">Acknowledged</span> ${tm(e.ack)}`:e.deliv?`<span class="y">Delivered</span> ${tm(e.deliv)}`:'<span class="n">Sending...</span>'}</div><div>Copy 2 to Pradhan office: ${e.pdr?`<span class="y">Received</span> ${tm(e.pdr)}`:'<span class="n">Sending...</span>'}</div><div>Copy 3 by SMS to all villagers: ${e.sms?`<span class="y">Sent to ${VILL} residents</span> ${tm(e.sms)}`:'<span class="n">Sending...</span>'}</div>${e.photo?`<img src="${e.photo}" style="max-width:160px;border-radius:6px;margin-top:6px">`:''}`;
+ r.innerHTML=`<div class="rh"><b>Report to SDM office · ${v.ref}</b><span><button data-a="t">${tpl?'Show filled report':'Show blank template'}</button> <button data-a="b">Back to sheet</button></span></div><div class="n">${tpl?'Blank template. The AI fills each {field} from live sensor data.':'Drafted by the AI from the readings, forecast and work order status.'}</div><pre>${txt}</pre><div class="n">SMS to all villagers: ${tpl?'GaoDrishti AI {priority}: {issue} at {asset}. Risk {risk}/100. Ref {ref}.':sms}</div><div style="margin-top:8px">${st}</div><div class="n" style="margin-top:8px">Simulated for the demo. A live system would use an email and SMS gateway.</div>`;return true}
+const sd=e=>`SDM: ${e.ack?`<span class="y">Ack</span> ${tm(e.ack)}`:e.deliv?'Delivered '+tm(e.deliv):'Sending...'}<br>Pradhan: ${e.pdr?'<span class="y">Received</span>':'Sending...'}<br>SMS: ${e.sms?`<span class="y">Sent to ${VILL}</span>`:'Sending...'}<br><button data-a="v" data-i="${e.n}">View report</button>`;
+function sendPkt(k,to,col){const m=new THREE.Mesh(new THREE.SphereGeometry(.3,12,10),new THREE.MeshBasicMaterial({color:col||0xf2b33d}));scene.add(m);pk.push({m,k,to:to||OFF,t:performance.now()})}
+const tm=t=>new Date(t).toLocaleTimeString([],{hour12:false});
+function reports(){document.getElementById('rb').textContent='Pradhan office ('+LOG.length+')';const r=document.getElementById('rp');r.style.display=repOpen?'block':'none';if(!repOpen)return;
+ if(vw!==null&&letter(r))return;
+ const nv=LOG.filter(e=>e.ver).length,nd=LOG.filter(e=>e.done).length;
+ const row=e=>{const w=e.wo!==null?WO[e.wo]:null;
+  const act=!w?(S[e.k].log===e?`<button data-a="w" data-k="${e.k}">Create work order</button>`:''):w.st==='Created'?`<button data-a="n" data-i="${e.wo}">Verify</button>`:w.st==='Verified'?`<button data-a="n" data-i="${e.wo}">Mark fixed</button>`:'Closed';
+  return `<tr><td>${e.n}</td><td>${tm(e.arose)} · <b>${e.src==='citizen'?'Citizen app':'AI sensors'}</b><br><small>${e.problem}</small>${e.photo?`<br><img src="${e.photo}" style="height:36px;border-radius:4px;margin-top:4px">`:''}</td><td>${S[e.k].id}</td><td>${e.pr}</td><td>${e.ver?`<span class="y">Yes</span> ${tm(e.ver)}`:`<span class="n">${w?'Not yet':'No work order'}</span>`}</td><td>${e.done?`<span class="y">Yes</span> ${tm(e.done)}<br><small>${Math.round((e.done-e.arose)/1000)} s from problem to fix</small>`:'<span class="n">Not yet</span>'}</td><td>${sd(e)}</td><td>${act}</td></tr>`};
+ r.innerHTML=`<div class="rh"><b>Pradhan office · report monitor</b><span>${LOG.length} reports · ${LOG.filter(e=>e.sms).length} published by SMS · ${nv} verified · ${nd} fixed</span><button data-a="c">Close</button></div><div class="tw"><table><thead><tr><th>#</th><th>Problem arose</th><th>Asset</th><th>Priority</th><th>Verified</th><th>Work done</th><th>Copies sent</th><th>Action</th></tr></thead><tbody>${LOG.length?LOG.slice().reverse().map(row).join(''):'<tr><td colspan="8" class="n">No problems yet. Inject a scenario or run the guided demo.</td></tr>'}</tbody></table></div>`}
+function spark(){const c=document.getElementById('sp');if(!c)return;const f=FLD(sel),h=S[sel].h.map(x=>x[f]);if(h.length<2)return;const g=c.getContext('2d'),W=c.width,H=c.height,lo=Math.min(...h),hi=Math.max(...h,lo+1e-6);g.clearRect(0,0,W,H);g.strokeStyle=C[last?last[sel].st:'ok'];g.lineWidth=2;g.beginPath();h.forEach((y,i)=>{const px=i/(h.length-1)*(W-4)+2,py=H-4-(y-lo)/(hi-lo)*(H-8);i?g.lineTo(px,py):g.moveTo(px,py)});g.stroke()}
+// ---- 3D scene ----
+const stage=document.getElementById('stage');
+const R=new THREE.WebGLRenderer({antialias:true,alpha:true});R.setPixelRatio(Math.min(devicePixelRatio,2));stage.appendChild(R.domElement);
+const scene=new THREE.Scene(),cam=new THREE.PerspectiveCamera(45,1,.1,450);
+const amb=new THREE.AmbientLight(0xffffff,.7),dl=new THREE.DirectionalLight(0xffffff,.8);scene.add(amb);dl.position.set(8,14,6);scene.add(dl);
+const M=(c)=>new THREE.MeshLambertMaterial({color:c});
+function box(w,h,d,c,x,y,z){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),M(c));m.position.set(x,y,z);scene.add(m);return m}
+const GR=box(40,.2,34,0x6f9a63,0,-.1,0);box(40,3.8,34,0x6b4f35,0,-2.1,0);
+const RC=0xa08a68;box(40,.06,2.6,RC,0,.03,7);box(2.4,.06,34,RC,-1,.03,0);box(2.4,.06,34,RC,12,.03,0);box(40,.06,2.6,RC,0,.03,-11);box(2.4,.06,34,RC,-14,.03,0);
+const WM=new THREE.MeshBasicMaterial({color:0x9ec5d8});
+const win=(x,y,z,w,h)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,.06),WM);m.position.set(x,y,z);scene.add(m)};
+const hs=(a,b)=>{const v=Math.sin(a*127.1+b*311.7)*43758.5453;return v-Math.floor(v)};
+const BG=new THREE.CircleGeometry(1,16),BM=new THREE.MeshBasicMaterial({color:0x000000,transparent:true,opacity:.16,depthWrite:false});
+const blob=(x,z,r)=>{const m=new THREE.Mesh(BG,BM);m.rotation.x=-Math.PI/2;m.position.set(x,.025,z);m.scale.setScalar(r);scene.add(m)};
+function lab(t,x,y,z,bg){const c=document.createElement('canvas');c.width=256;c.height=64;const g=c.getContext('2d');g.fillStyle=bg||'#2f5f8a';g.fillRect(0,0,256,64);g.fillStyle='#fff';g.font='bold 28px sans-serif';g.textAlign='center';g.fillText(t,128,44);const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c)}));sp.scale.set(3,.75,1);sp.position.set(x,y,z);scene.add(sp)}
+function office(x,z,wall,roof){box(4,2.6,3,wall,x,1.3,z);box(4.3,.25,3.3,roof,x,2.72,z);box(4.3,.22,.15,roof,x,2.95,z+1.6);
+ for(let i=0;i<3;i++)win(x-1.25+i*1.25,1.7,z+1.52,.6,.6);
+ box(.8,1.4,.06,0x5b3a1e,x,.7,z+1.52);box(.18,2.4,.18,0xf2f2ea,x-.95,1.2,z+2);box(.18,2.4,.18,0xf2f2ea,x+.95,1.2,z+2);box(2.4,.15,1,roof,x,2.5,z+1.9);box(2.4,.15,.7,0xbfbfb5,x,.08,z+2.35);
+ box(.06,4,.06,0xdddddd,x+1.9,2,z+1.7);box(.7,.12,.02,0xff9933,x+2.25,3.75,z+1.7);box(.7,.12,.02,0xffffff,x+2.25,3.63,z+1.7);box(.7,.12,.02,0x138808,x+2.25,3.51,z+1.7)}
+const KEEP=[[7,-6.5,2.4],[-10,10.5,2.4],[-9,0,1.8],[8.5,11,1.8],[18.5,-6,1.8],[-4.5,0,2.4],[9,-1.5,2.4],[-17,10,2.8],[3.5,-8,1.4],[-6,5,1.4],[16,3,1.4],[17,-1.5,3.6],[3.5,5,2.8],[-17.5,-10,2.2],[-12.2,-9.2,2.2]],KEEPS=(x,z)=>KEEP.some(([a,b,r])=>Math.hypot(x-a,z-b)<r);
+const nearRd=(x,z)=>Math.abs(z-7)<2.8||Math.abs(z+11)<2.8||Math.abs(x+1)<2.8||Math.abs(x-12)<2.8||Math.abs(x+14)<2.8||(Math.abs(z-3)<1.5&&Math.abs(x)<11)||Math.hypot(x+6,z+4)<3.2||Math.hypot(x-2.4,z-8.6)<2||Math.hypot(x-13.6,z+3)<2||Math.hypot(x-6,z+9.3)<2||Math.hypot(x-17,z-14.5)<4.5||Math.hypot(x+17,z-14.5)<4.5||Math.hypot(x+9,z+4)<2.6||Math.hypot(x-5,z+1.5)<2.2||z<-13.2||KEEPS(x,z);
+let hn=0;const HP=[],HPos=[];const hc=[0xe6dcc8,0xd9c7a5,0xcfd8dc,0xe8cfc0];
+for(let x=-18;x<=18;x+=3)for(let z=-15;z<=15;z+=3){const j=Math.sin(x*12.9+z*78.2)*.4,hx=x+j,hz=z+j*.8;if(nearRd(hx,hz))continue;hn++;HP.push([hx,2,hz]);
+ const ty=(q=>q<.08?1:q<.15?0:q<.55?2:3)(hs(hx,hz)),hh=1.3+(hn%2)*.25;HPos.push([hx,hz]);blob(hx,hz,1.9);
+ if(ty===3){box(2,1.1,1.8,0xc9a77a,hx,.55,hz);const r=new THREE.Mesh(new THREE.ConeGeometry(1.6,.95,4),M(0xb8975a));r.position.set(hx,1.55,hz);r.rotation.y=Math.PI/4;r.scale.z=.9;scene.add(r);box(.4,.8,.06,0x5b3a1e,hx,.4,hz+.93);box(1.5,.07,.6,0xa9884e,hx,.9,hz+1.1)}else if(ty===2){const b=new THREE.Mesh(new THREE.CylinderGeometry(.95,.95,1.1,16),M(0xd2b48c));b.position.set(hx,.55,hz);scene.add(b);
+  const r=new THREE.Mesh(new THREE.ConeGeometry(1.35,1,16),M(0xb08a4a));r.position.set(hx,1.6,hz);scene.add(r);box(.4,.8,.06,0x5b3a1e,hx,.4,hz+.93)}
+ else{box(2,hh,2,hc[hn%4],hx,hh/2,hz);
+  if(ty===0){const r=new THREE.Mesh(new THREE.ConeGeometry(1.7,.9,4),M(0xa8574a));r.position.set(hx,hh+.45,hz);r.rotation.y=Math.PI/4;scene.add(r)}
+  else{box(2.15,.12,2.15,0x9aa0a4,hx,hh+.06,hz);const t=new THREE.Mesh(new THREE.CylinderGeometry(.3,.3,.5,12),M(0x222222));t.position.set(hx-.5,hh+.37,hz-.4);scene.add(t)}
+  box(.45,.85,.06,0x5b3a1e,hx-.45,.43,hz+1.02);win(hx+.5,hh*.6,hz+1.02,.4,.4)}}
+const treeOk=(x,z)=>!nearRd(x,z)&&!HPos.some(([a,b])=>Math.hypot(a-x,b-z)<2.3);
+const trM=[0x3f7d3a,0x4f8f45,0x2f6b3a].map(c=>M(c)),trkM=M(0x6b4a2b),trkG=new THREE.CylinderGeometry(.14,.2,1.2,8),lfG=new THREE.SphereGeometry(.9,10,8);
+for(let x=-19;x<=19;x+=2.4)for(let z=-16;z<=16;z+=2.4){if(hs(x,z)<.62)continue;const px=x+(hs(z,x)-.5)*1.4,pz=z+(hs(x+1,z)-.5)*1.4;if(!treeOk(px,pz))continue;
+ const sc=.8+hs(x,z+5)*.7,cm=trM[Math.floor(hs(z,x+3)*3)%3],tk=new THREE.Mesh(trkG,trkM);tk.position.set(px,.6*sc,pz);tk.scale.setScalar(sc);scene.add(tk);
+ const l1=new THREE.Mesh(lfG,cm);l1.position.set(px,1.6*sc,pz);l1.scale.setScalar(sc);scene.add(l1);const l2=new THREE.Mesh(lfG,cm);l2.position.set(px+.35*sc,2.1*sc,pz-.2*sc);l2.scale.setScalar(.7*sc);scene.add(l2);blob(px,pz,1.1*sc)}
+for(let i=0;i<28;i++){const m=new THREE.Mesh(new THREE.CircleGeometry(1.4+hs(i,3)*2,14),new THREE.MeshLambertMaterial({color:i%2?0x5f8f55:0x84ae70,transparent:true,opacity:.45,depthWrite:false}));m.rotation.x=-Math.PI/2;m.position.set((hs(i,1)-.5)*36,.012+i*.0004,(hs(i,2)-.5)*30);scene.add(m)}
+[[-8,8,0x8fb85a,0x6f9f45],[6,8,0x9c7a4a,0x7d5e35],[16.5,5,0xd8c24a,0xb9a23a]].forEach(([fx,fw,c1,c2])=>{box(fw,.04,3,c1,fx,.03,-14.7);for(let i=0;i<6;i++)box(fw-.4,.05,.25,c2,fx,.05,-15.9+i*.48)});
+const tank=new THREE.Mesh(new THREE.CylinderGeometry(1.1,1.1,2.4,24),M(0x3b82c4));tank.position.set(-6,1.2,-4);tank.userData.k='wq';scene.add(tank);
+const drain=box(20,.18,.5,0x2f8f5b,0,.09,3);drain.userData.k='dr';
+const cpole=box(.15,2,.15,0x333333,2.4,1,8.6);cpole.userData.k='rd';
+const pits={rd:[[4,7],[-7,6.6]],rd2:[[12,-6],[12.4,4]],rd3:[[-4,-11],[9,-11.3]]},pitM=[];
+for(const k in pits)pits[k].forEach(([x,z])=>{const m=new THREE.Mesh(new THREE.CircleGeometry(.8,20),new THREE.MeshBasicMaterial({color:0x151515}));m.rotation.x=-Math.PI/2;m.position.set(x,.08,z);m.userData.k=k;scene.add(m);pitM.push(m)});
+const p2=box(.15,2,.15,0x333333,13.6,1,-3);p2.userData.k='rd2';const p3=box(.15,2,.15,0x333333,6,1,-9.3);p3.userData.k='rd3';
+office(17,14.5,0x2f7f9b,0x123f52);
+const OFF=[17,3.6,14.5],pk=[],cv=document.createElement('canvas');cv.width=256;cv.height=64;const g2=cv.getContext('2d');g2.fillStyle='#123f52';g2.fillRect(0,0,256,64);g2.fillStyle='#fff';g2.font='bold 30px sans-serif';g2.textAlign='center';g2.fillText('SDM Office',128,44);
+const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv)}));sp.scale.set(4,1,1);sp.position.set(17,4.6,14.5);scene.add(sp);
+const PRD=[-17,3.6,14.5];office(-17,14.5,0xe9dfc6,0x2b5a37);
+const cv2=document.createElement('canvas');cv2.width=256;cv2.height=64;const g3=cv2.getContext('2d');g3.fillStyle='#2b5a37';g3.fillRect(0,0,256,64);g3.fillStyle='#fff';g3.font='bold 28px sans-serif';g3.textAlign='center';g3.fillText('Pradhan Office',128,44);
+const sp2=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(cv2)}));sp2.scale.set(4,1,1);sp2.position.set(-17,4.6,14.5);scene.add(sp2);
+box(1.7,1.3,1.4,0x8a8f94,-9,.65,-4);box(1.9,.12,1.6,0x555b60,-9,1.36,-4);box(.4,.8,.06,0x3a3a3a,-9,.4,-3.28);
+const pp=new THREE.Mesh(new THREE.CylinderGeometry(.1,.1,1.1,10),M(0x2f5f8a));pp.rotation.z=Math.PI/2;pp.position.set(-7.65,.5,-4);scene.add(pp);lab('Pump house',-9,2.6,-4);
+{const gx=5,gz=-1.5;box(.9,.3,.9,0x8d9296,gx,.15,gz);box(.12,1.2,.12,0x2f5f8a,gx,.9,gz);box(.4,.22,.22,0x2f5f8a,gx+.1,1.55,gz);const hd=box(.8,.06,.08,0x333333,gx-.35,1.7,gz);hd.rotation.z=.45;box(.35,.08,.1,0x2f5f8a,gx+.35,1.3,gz);
+ const pd=new THREE.Mesh(new THREE.CircleGeometry(.9,16),new THREE.MeshBasicMaterial({color:0x5b93b8,transparent:true,opacity:.7}));pd.rotation.x=-Math.PI/2;pd.position.set(gx+.5,.04,gz+.5);scene.add(pd);lab('Hand pump',gx,2.5,gz)}
+const LP={sl1:[[-9,5.4],[-5,5.4],[4,5.4],[8,5.4]],sl2:[[13.6,-8],[13.6,1],[13.6,10.5],[13.6,14]],sl3:[[-10,-9.4],[-5,-9.4],[2,-9.4],[16,-9.4]],sl4:[[24,5.3],[30,5.3],[40,5.3],[46,5.3]]},lamps=[],pl=[];
+const halM=new THREE.MeshBasicMaterial({color:0xffd76a,transparent:true,opacity:.4,depthWrite:false});
+for(const k in LP)LP[k].forEach(([x,z])=>{
+ const pole=box(.12,3.2,.12,0x555b60,x,1.6,z);pole.userData.k=k;pl.push(pole);
+ box(.55,.12,.4,0x2b2f33,x,3.28,z);const pn=box(.8,.05,.55,0x1c3f7a,x,3.75,z);pn.rotation.x=-.4;
+ const bulb=new THREE.Mesh(new THREE.SphereGeometry(.26,14,10),new THREE.MeshBasicMaterial({color:0xffe08a}));bulb.position.set(x,3.05,z);scene.add(bulb);
+ const halo=new THREE.Mesh(new THREE.CircleGeometry(2.6,24),halM.clone());halo.rotation.x=-Math.PI/2;halo.position.set(x,.09,z);scene.add(halo);
+ const cone=new THREE.Mesh(new THREE.ConeGeometry(2.4,3,20,1,true),new THREE.MeshBasicMaterial({color:0xffe08a,transparent:true,opacity:.14,depthWrite:false,side:THREE.DoubleSide}));cone.position.set(x,1.55,z);scene.add(cone);
+ lamps.push({k,bulb,halo,cone})});
+function setNight(){WM.color.set(night?0xffd98a:0x9ec5d8);stage.classList.toggle('night',night);amb.intensity=night?.4:.7;dl.intensity=night?.3:.8}
+const pos={wl1:[-7.5,2.6,-8],wl2:[16,2.6,9.2],wq:[-6,4,-4],dr:[5,2.4,3],rd:[2.4,3.2,8.6],rd2:[13.6,3.2,-3],rd3:[6,3.2,-9.3],sl1:[-2,5.4,5.4],sl2:[13.6,5.4,4.4],sl3:[.75,5.4,-9.4],sl4:[35,5.4,5.3]},mk={},pick=[tank,drain,cpole,p2,p3,...pitM,...pl];
+for(const k in pos){const m=new THREE.Mesh(new THREE.SphereGeometry(.42,20,16),new THREE.MeshBasicMaterial({color:C.ok}));m.position.set(...pos[k]);m.userData.k=k;scene.add(m);mk[k]=m;pick.push(m)}
+let th=.8,ph=1.0,rad=48;
+function place(){cam.position.set(rad*Math.sin(ph)*Math.sin(th),rad*Math.cos(ph),rad*Math.sin(ph)*Math.cos(th));cam.lookAt(-6,0,0)}
+function size(){const w=stage.clientWidth,h=stage.clientHeight;R.setSize(w,h);cam.aspect=w/h;cam.updateProjectionMatrix()}
+addEventListener('resize',size);
+let dn=null,mv=0;const el=R.domElement;
+el.addEventListener('pointerdown',e=>{dn=[e.clientX,e.clientY];mv=0;el.setPointerCapture(e.pointerId)});
+el.addEventListener('pointermove',e=>{if(!dn)return;const dx=e.clientX-dn[0],dy=e.clientY-dn[1];mv+=Math.abs(dx)+Math.abs(dy);th-=dx*.006;ph=cl(ph-dy*.005,.25,1.45);dn=[e.clientX,e.clientY];place()});
+el.addEventListener('pointerup',e=>{dn=null;if(mv<6){const r=el.getBoundingClientRect(),v=new THREE.Vector2((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1),rc=new THREE.Raycaster();rc.setFromCamera(v,cam);const h=rc.intersectObjects(pick)[0];if(h){sel=h.object.userData.k;update()}}});
+el.addEventListener('wheel',e=>{e.preventDefault();rad=cl(rad+e.deltaY*.04,10,170);place()},{passive:false});
+function paint(A){for(const k in mk)mk[k].material.color.set(C[A[k].st]);
+ tank.material.color.set(A.wq.st==='crit'?0x8a6a3b:A.wq.st==='warn'?0x6d8a7a:0x3b82c4);
+ drain.material.color.set(C[A.dr.st]);pitM.forEach(m=>{const q=S[m.userData.k].v.Pothole;m.visible=q>.3;m.scale.setScalar(.6+q)})}
+let last;function update(){last=render();paint(last)}
+setInterval(()=>{for(const k in S)step(k);update()},1000);
+(function loop(t){requestAnimationFrame(loop);const tt=t/1000;lamps.forEach(l=>{const st=last?last[l.k].st:'ok',off=st==='crit',fl=st==='warn'?(Math.sin(tt*20)>0?1:.2):1+.06*Math.sin(tt*3);l.bulb.material.color.set(off?0x2a2d30:0xffe08a);l.halo.material.opacity=off?0:(night?.42:.1)*fl;l.cone.material.opacity=off?0:(night?.16:.04)*fl});for(let q=pk.length-1;q>=0;q--){const o=pk[q],u=(performance.now()-o.t)/2500;if(u>=1){scene.remove(o.m);pk.splice(q,1);continue}const a=pos[o.k],b=o.to;o.m.position.set(a[0]+(b[0]-a[0])*u,a[1]+(b[1]-a[1])*u+Math.sin(u*Math.PI)*4,a[2]+(b[2]-a[2])*u)}for(const k in mk){const c=last&&last[k].st==='crit';mk[k].scale.setScalar((k===sel?1.25:1)*(c?1+.25*Math.sin(tt*6):1));mk[k].position.y=pos[k][1]+.15*Math.sin(tt*2)}R.render(scene,cam)})(0);
+// ===== v2: wells, groundwater, rain pits, underground drains, village life =====
+const WL=['wl1','wl2','wl3','wl4','wl5','wl6','wl7','wl8'],GW=['gw1','gw2','gw3'],PT=['pt1','pt2','pt3'],UD=['ud1','ud2','ud3','ud4','ud5'];
+const PUMP={},RAT={},AW={},EV=[];WL.forEach(k=>{PUMP[k]=true;RAT[k]=0});let AUTO=true,RAIN=false,UG=true,REC=0,lh='';
+function ev(k,t){EV.unshift({k,t,at:Date.now()});if(EV.length>5)EV.pop()}
+function FLD(k){const t=k.slice(0,2);return k==='wq'?'TDS':k==='dr'?'Level':k[0]==='w'?'Level':t==='gw'?'Depth':t==='pt'?'Fill':t==='ud'?'Level':k[0]==='r'?'Pothole':'Light'}
+const _fm=fmt;fmt=function(k,f){return f==='Depth'?S[k].v.Depth.toFixed(1):_fm(k,f)};
+function recCalc(){let a=0;PT.forEach(k=>{const v=S[k].v;a+=S[k].fault||v.Turb>5||v.TDS>350?0:v.Fill/100});return a/PT.length}
+const _st=step;step=function(k){const t=k.slice(0,2),s=S[k],v=s.v;REC=recCalc();
+ if(k[0]==='w'&&k!=='wq'){if(!s.failed)v.Level=Math.min(100,v.Level+REC*1.2);return _st(k)}
+ if(t!=='gw'&&t!=='pt'&&t!=='ud')return _st(k);
+ if(s.failed){s.conf=Math.max(30,s.conf-4);return}s.conf=100;
+ if(t==='gw'){if(s.fault){v.Depth=Math.min(30,v.Depth+Math.max(.1,rn(.5,.9)-REC*.6));v.TDS=Math.min(900,v.TDS+rn(5,12))}else{v.Depth+=((8-REC*2)-v.Depth)*.1+rn(-.05,.05);v.TDS+=(350-v.TDS)*.15+rn(-3,3)}}
+ if(t==='pt'){if(s.fault){v.Turb=Math.min(25,v.Turb+1.4);v.TDS=Math.min(900,v.TDS+28)}else{v.Turb+=(3-v.Turb)*.15+rn(-.1,.1);v.TDS+=(120-v.TDS)*.15+rn(-2,2)}
+  if(RAIN){v.Fill=Math.min(88,v.Fill+rn(1.5,3));if(!s.fault)v.Turb=Math.min(4.4,v.Turb+.5)}else v.Fill=Math.max(6,v.Fill-.5)}
+ if(t==='ud'){if(s.fault){v.Flow=Math.max(8,v.Flow-3);v.Level=Math.min(100,v.Level+2.5)}else{v.Flow+=(60-v.Flow)*.25+rn(-1,1);v.Level+=((RAIN?35:25)-v.Level)*.25+rn(-.6,.6)}}
+ s.h.push({...v});if(s.h.length>40)s.h.shift()};
+const _as=assess;assess=function(k){const t=k.slice(0,2);if(t!=='gw'&&t!=='pt'&&t!=='ud')return _as(k);
+ const s=S[k],v=s.v;let st='ok',risk=0,det='All readings normal.',pred='No trend toward a threshold.',act='No action needed.';
+ if(t==='gw'){const bad=v.Depth>22||v.TDS>700,w=v.Depth>15||v.TDS>500;risk=cl(Math.round(Math.max((v.Depth-8)*5,(v.TDS-350)/4)),0,100);st=bad?'crit':w?'warn':'ok';
+  if(st!=='ok')det='Water table is falling: '+v.Depth.toFixed(1)+' m below ground'+(v.TDS>500?', salinity rising':'')+'.';
+  const sl=slope(s,'Depth');if(bad)pred='The aquifer is critically low here. Nearby wells will fail first.';else if(sl>.1)pred='Depth reaches the 22 m danger mark in about '+Math.round((22-v.Depth)/sl)+' min at this drawdown.';
+  if(st!=='ok')act='Cut pumping near this sensor, ration supply, and recharge through the rainwater pits.'}
+ if(t==='pt'){const dirty=v.Turb>8||v.TDS>500,w=v.Turb>5||v.TDS>350,full=v.Fill>97,hi=v.Fill>90;risk=cl(Math.round(Math.max((v.Turb-3)*8,(v.TDS-120)/5,(v.Fill-70)*3.3)),0,100);st=dirty||full?'crit':w||hi?'warn':'ok';
+  if(w)det='Rainwater in the pit is contaminated: '+(v.Turb>5?'high turbidity ':'')+(v.TDS>350?'high TDS':'');else if(hi)det='Pit is '+Math.round(v.Fill)+'% full.';
+  const sl=slope(s,'Fill');if(w)pred='Letting this water seep down would pollute the aquifer.';else if(sl>.4&&v.Fill<100)pred='Pit is full in about '+Math.round((100-v.Fill)/sl)+' min at this inflow.';
+  if(w)act='Close the recharge inlet, send the flow to the settling chamber, and test a sample before reuse.';else if(hi)act='Open the overflow channel to the village pond.'}
+ if(t==='ud'){const bad=v.Flow<30&&v.Level>60,w=v.Flow<45||v.Level>50;risk=cl(Math.round((60-v.Flow)*1.2+(v.Level-25)*.8),0,100);st=bad?'crit':w?'warn':'ok';
+  if(st!=='ok')det='Underground drain: flow falling while level rises (blockage pattern).';
+  const sl=slope(s,'Level');if(sl>.5)pred='Backflow to the street in about '+Math.round((100-v.Level)/sl)+' min at the current rise.';
+  if(st!=='ok')act='Send the sanitation crew to open the nearest manhole and clear this line.'}
+ if(s.failed){st='unk';det='Sensor offline. Showing last known values as estimates.';pred='Predictions paused until fresh data arrives.';act='Dispatch a technician and cross-check with the nearest working node.'}
+ const sc=risk*(.5+s.pop/1200),pr=st==='ok'?'–':st==='unk'?'P2':sc>=55?'P1':sc>=30?'P2':'P3';return{st,risk,det,pred,act,pr}};
+const _fv=fillV;fillV=function(e){const o=_fv(e),t=e.k.slice(0,2);if(e.problem.startsWith('Sensor offline'))return o;
+ if(t==='gw'){o.issue='groundwater level alert';o.request='approve pumping limits and recharge works for this area'}
+ else if(t==='pt'){o.issue='contaminated rainwater recharge pit';o.request='send a water-testing team and approve cleaning of the pit and its filter'}
+ else if(t==='ud'){o.issue='underground drain blockage risk';o.request='sanction sanitation support to clear the underground drain before it overflows'}
+ return o};
+const _act=act;act=function(a,k,i){if(a==='d2')return demo2();
+ if(a==='r'){WL.forEach(q=>{PUMP[q]=true;RAT[q]=0});AUTO=true;RAIN=false;EV.length=0;for(const q in AW)delete AW[q]}
+ return _act(a,k,i)};
+document.getElementById('scen').insertAdjacentHTML('beforeend',[['f','pt1','Contaminate rain pit 1'],['f','ud2','Block underground drain 2'],['f','gw1','Water table falling (GW-01)'],['f','wl5','Hand pump 1 drying'],['f','wl3','Open well 2 drying'],['d2','','Run water demo']].map(([a,k,t])=>`<button data-a="${a}" data-k="${k}"${a==='d2'?' class="on"':''}>${t}</button>`).join(''));
+function demo2(){dt.forEach(clearTimeout);dt=[];act('r');
+ const q=[[500,()=>{RAIN=true;say('1 · Monsoon rain starts. The rain pits fill and recharge the groundwater. Watch the water table.')}],
+ [9000,()=>{act('f','pt1');say('2 · Runoff carries dirt into pit 1. Turbidity and TDS rise, so the AI closes the recharge inlet to protect the aquifer.')}],
+ [16000,()=>{act('w','pt1');say('3 · A work order is raised from the twin: test the sample and clean the pit.')}],
+ [20000,()=>{act('f','ud2');say('4 · Underground drain 2: flow falls while level rises. A blockage is flagged before the street floods.')}],
+ [27000,()=>{RAIN=false;S.gw1.v.Depth=13;S.wl5.v.Level=48;act('f','gw1');act('f','wl5');say('5 · Rain stops. Pumping pulls the water table down at GW-01 and hand pump 1 runs low. Rationing starts and a water tanker is sent.')}],
+ [55000,()=>say('')]];
+ q.forEach(([t,f])=>dt.push(setTimeout(f,t)))}
+// ---- underground layer ----
+const WT=new THREE.Mesh(new THREE.PlaneGeometry(39.6,33.6),new THREE.MeshBasicMaterial({color:0x3b9bd9,transparent:true,opacity:.28,depthWrite:false,side:THREE.DoubleSide}));WT.rotation.x=-Math.PI/2;WT.position.y=-1.8;scene.add(WT);
+function setUG(){GR.material.transparent=UG;GR.material.opacity=UG?.35:1;GR.material.needsUpdate=true}
+const UDL={ud1:['h',8.8,13.8,-12.2],ud2:['v',-2.9,8.8,-9.2],ud3:['v',13.8,8.8,-9.2],ud4:['h',-9.2,13.8,-12.2],ud5:['v',-12.2,8.8,-9.2]},PIPE={},DOTS=[];
+for(const k in UDL){const[ax,f,a,b]=UDL[k],len=Math.abs(b-a),mid=(a+b)/2,p=new THREE.Mesh(new THREE.CylinderGeometry(.24,.24,len,12),new THREE.MeshLambertMaterial({color:C.ok}));
+ if(ax==='h'){p.rotation.z=Math.PI/2;p.position.set(mid,-.8,f)}else{p.rotation.x=Math.PI/2;p.position.set(f,-.8,mid)}
+ p.userData.k=k;scene.add(p);PIPE[k]=p;pick.push(p);
+ for(let i=0;i<6;i++){const d=new THREE.Mesh(new THREE.SphereGeometry(.13,8,6),new THREE.MeshBasicMaterial({color:0xbfeaff}));scene.add(d);DOTS.push({d,k,ax,f,a,b,u:i/6})}}
+[['ud1',.5,8.8],['ud2',-2.9,-1],['ud3',13.8,-1],['ud4',1,-9.2],['ud5',-12.2,-1]].forEach(([k,x,z])=>{const m=new THREE.Mesh(new THREE.CylinderGeometry(.45,.45,.1,16),M(0x2a2d30));m.position.set(x,.08,z);m.userData.k=k;scene.add(m);pick.push(m);
+ const sh=new THREE.Mesh(new THREE.CylinderGeometry(.34,.34,.9,12,1,true),new THREE.MeshBasicMaterial({color:0x9a9a92,transparent:true,opacity:.35,side:THREE.DoubleSide}));sh.position.set(x,-.35,z);scene.add(sh)});
+box(1.6,.3,1.6,0x3a3f44,-12.2,.15,-9.2);lab('Outfall / soak pit',-12.2,1.6,-9.2,'#5a4632');
+function flowVis(d){DOTS.forEach(o=>{const f=last?S[o.k].v.Flow/60:1;o.u=(o.u+d*.07*Math.max(.1,f))%1;const p=o.a+(o.b-o.a)*o.u;if(o.ax==='h')o.d.position.set(p,-.8,o.f);else o.d.position.set(o.f,-.8,p)})}
+// ---- wells and hand pumps ----
+const WV={},WX={},SH={};
+function shaft(k,x,z,r){const c=new THREE.Mesh(new THREE.CylinderGeometry(r,r,3.6,16,1,true),new THREE.MeshBasicMaterial({color:0x9a9a92,transparent:true,opacity:.35,side:THREE.DoubleSide}));c.position.set(x,-2,z);scene.add(c);
+ const w=new THREE.Mesh(new THREE.CylinderGeometry(r*.88,r*.88,1,16),new THREE.MeshBasicMaterial({color:0x4fa3d9,transparent:true,opacity:.85}));scene.add(w);SH[k]={w}}
+function well(k,x,z,t){const r=new THREE.Mesh(new THREE.CylinderGeometry(.75,.8,.7,18,1,true),new THREE.MeshLambertMaterial({color:0x9a9a92,side:THREE.DoubleSide}));r.position.set(x,.35,z);r.userData.k=k;scene.add(r);
+ const w=new THREE.Mesh(new THREE.CircleGeometry(.68,18),new THREE.MeshBasicMaterial({color:0x4fa3d9}));w.rotation.x=-Math.PI/2;w.position.set(x,.3,z);w.userData.k=k;scene.add(w);
+ box(.1,1.5,.1,0x5b3a1e,x-.8,.75,z);box(.1,1.5,.1,0x5b3a1e,x+.8,.75,z);box(1.9,.1,.1,0x5b3a1e,x,1.5,z);lab(t,x,3.4,z);blob(x,z,1.6);pick.push(r,w);WV[k]=w;
+ lab('Pumping',x,4.1,z,'#2f8f5b');const on=scene.children[scene.children.length-1];lab('Auto-paused',x,4.1,z,'#c0392b');const off=scene.children[scene.children.length-1];
+ const rg=new THREE.Mesh(new THREE.RingGeometry(.3,.4,20),new THREE.MeshBasicMaterial({color:0xbfe6ff,transparent:true,opacity:.7,side:THREE.DoubleSide}));rg.rotation.x=-Math.PI/2;scene.add(rg);WX[k]={on,off,rg,x,z};shaft(k,x,z,.75)}
+function hpump(k,x,z,t,old){if(!old){box(.9,.3,.9,0x8d9296,x,.15,z);box(.12,1.2,.12,0x2f5f8a,x,.9,z);box(.4,.22,.22,0x2f5f8a,x+.1,1.55,z);const hd=box(.8,.06,.08,0x333333,x-.35,1.7,z);hd.rotation.z=.45;box(.35,.08,.1,0x2f5f8a,x+.35,1.3,z);
+  const pd=new THREE.Mesh(new THREE.CircleGeometry(.8,16),new THREE.MeshBasicMaterial({color:0x5b93b8,transparent:true,opacity:.7}));pd.rotation.x=-Math.PI/2;pd.position.set(x+.5,.04,z+.5);scene.add(pd);lab(t,x,2.5,z);blob(x,z,1.2)}
+ shaft(k,x,z,.22)}
+well('wl1',-7.5,-8,'Open well 1');well('wl2',16,9.2,'Borewell');well('wl3',7,-6.5,'Open well 2');well('wl4',-10,10.5,'Open well 3');
+hpump('wl5',5,-1.5,'',1);hpump('wl6',-9,0,'Hand pump 2');hpump('wl7',8.5,11,'Hand pump 3');hpump('wl8',18.5,-6,'Hand pump 4');
+// water table piezometers
+const GWM={};[['gw1',3.5,-8],['gw2',-6,5],['gw3',16,3]].forEach(([k,x,z])=>{box(.5,.5,.5,0x888e93,x,.25,z);box(.16,.8,.16,0xdddddd,x,.9,z);box(.05,.5,.05,0x555b60,x+.2,1.5,z);
+ const tube=new THREE.Mesh(new THREE.CylinderGeometry(.14,.14,4.2,10,1,true),new THREE.MeshBasicMaterial({color:0xcfd8dc,transparent:true,opacity:.45,side:THREE.DoubleSide}));tube.position.set(x,-1.9,z);tube.userData.k=k;scene.add(tube);pick.push(tube);
+ const w=new THREE.Mesh(new THREE.CylinderGeometry(.1,.1,1,10),new THREE.MeshBasicMaterial({color:0x2f8fd9}));scene.add(w);GWM[k]={w};lab(S[k].id,x,3.2,z,'#1f6f8b');blob(x,z,.8)});
+// rainwater harvesting pits
+const PI_={};function pit(k,x,z,nm){[[0,-1,2.2,.2],[0,1,2.2,.2],[-1,0,.2,2.2],[1,0,.2,2.2]].forEach(([a,b,w,d])=>box(w,.7,d,0xa0522d,x+a,.35,z+b));
+ const wt=new THREE.Mesh(new THREE.BoxGeometry(1.8,1,1.8),new THREE.MeshBasicMaterial({color:0x4fa3d9,transparent:true,opacity:.85}));wt.position.set(x,.05,z);wt.userData.k=k;scene.add(wt);
+ const gp=box(.14,1.3,.14,0x777777,x+1.4,.65,z-1.4),gb=new THREE.Mesh(new THREE.BoxGeometry(.2,1,.2),new THREE.MeshBasicMaterial({color:0x2f8f5b}));gb.position.set(x+1.4,.3,z-1.4);gb.userData.k=k;scene.add(gb);
+ const sh=new THREE.Mesh(new THREE.CylinderGeometry(1,1,2.2,18,1,true),new THREE.MeshBasicMaterial({color:0xb0a38a,transparent:true,opacity:.4,side:THREE.DoubleSide}));sh.position.set(x,-1.3,z);scene.add(sh);
+ const bo=new THREE.Mesh(new THREE.CylinderGeometry(.12,.12,1.6,10),new THREE.MeshBasicMaterial({color:0x3b82c4}));bo.position.set(x,-3,z);scene.add(bo);
+ box(1,.45,.8,0x8f8f86,x+2.1,.22,z);lab(nm,x,2.6,z,'#2b6a8a');blob(x,z,1.9);pick.push(wt,gb);PI_[k]={wt,gb}}
+pit('pt1',-4.5,0,'Rain pit 1');pit('pt2',9,-1.5,'Rain pit 2');pit('pt3',-17,10,'Rain pit 3');
+// markers for the new sensors
+const NP={wl3:[7,2.6,-6.5],wl4:[-10,2.6,10.5],wl5:[5,2.6,-1.5],wl6:[-9,2.6,0],wl7:[8.5,2.6,11],wl8:[18.5,2.6,-6],gw1:[3.5,2.4,-8],gw2:[-6,2.4,5],gw3:[16,2.4,3],pt1:[-4.5,2.2,0],pt2:[9,2.2,-1.5],pt3:[-17,2.2,10],ud1:[.5,1.9,8.8],ud2:[-2.9,1.9,-1],ud3:[13.8,1.9,-1],ud4:[1,1.9,-9.2],ud5:[-12.2,1.9,-1]};
+for(const k in NP){pos[k]=NP[k];const m=new THREE.Mesh(new THREE.SphereGeometry(.42,20,16),new THREE.MeshBasicMaterial({color:C.ok}));m.position.set(...NP[k]);m.userData.k=k;scene.add(m);mk[k]=m;pick.push(m)}
+function wellsVis(){if(!last)return;const q=(performance.now()/700)%1;
+ for(const k in WX){const o=WX[k],p=PUMP[k];o.on.visible=p;o.off.visible=!p;o.rg.visible=p;o.rg.position.set(o.x,WV[k].position.y+.02,o.z);o.rg.scale.setScalar(.6+q*1.6);o.rg.material.opacity=.7*(1-q)}
+ WL.forEach(k=>{const L=S[k].v.Level,st=last[k].st,c=st==='crit'?0x8a6a3b:st==='warn'?0xc9a84a:0x4fa3d9,h=Math.max(.05,L/100*3.4),o=SH[k];
+  if(WV[k]){WV[k].position.y=.08+Math.min(1,L/100)*.5;WV[k].material.color.set(c)}o.w.scale.y=h;o.w.position.set(o.w.position.x,-3.8+h/2,o.w.position.z);o.w.material.color.set(c)});
+ GW.forEach(k=>{const h=Math.max(.05,3.3-S[k].v.Depth*.14),g=GWM[k];g.w.scale.y=h;g.w.position.y=-3.9+h/2;g.w.material.color.set(last[k].st==='ok'?0x2f8fd9:0xe0a030)});
+ PT.forEach(k=>{const v=S[k].v,o=PI_[k],h=Math.max(.02,v.Fill/100*.62),gh=Math.max(.03,v.Fill/100*1.2);o.wt.scale.y=h;o.wt.position.y=.02+h/2;o.wt.material.color.set(v.Turb>8||v.TDS>500?0x7a5a35:v.Turb>5||v.TDS>350?0xb59a5a:0x4fa3d9);o.gb.scale.y=gh;o.gb.position.y=gh/2;o.gb.material.color.set(C[last[k].st])});
+ WT.position.y=-.6-GW.reduce((x,k)=>x+S[k].v.Depth,0)/GW.length*.14;UD.forEach(k=>PIPE[k].material.color.set(C[last[k].st]))}
+WL.forEach(k=>{const[x,z]=[pos[k][0],pos[k][2]];SH[k].w.position.set(x,-3.8,z);SH[k].c=0});
+// ---- village life ----
+{const pd=new THREE.Mesh(new THREE.CircleGeometry(2.4,28),new THREE.MeshBasicMaterial({color:0x4f9bb8}));pd.rotation.x=-Math.PI/2;pd.position.set(17,.04,-1.5);scene.add(pd);
+ const rm=new THREE.Mesh(new THREE.RingGeometry(2.4,2.9,28),new THREE.MeshBasicMaterial({color:0x8d7a55}));rm.rotation.x=-Math.PI/2;rm.position.set(17,.035,-1.5);scene.add(rm);lab('Village pond',17,2,-1.5,'#2f6f8a')}
+{const x=3.5,z=5,pl=new THREE.Mesh(new THREE.CylinderGeometry(1.6,1.7,.35,20),M(0xbfae8c));pl.position.set(x,.18,z);scene.add(pl);
+ const tk=new THREE.Mesh(new THREE.CylinderGeometry(.3,.45,2.6,10),M(0x5e4128));tk.position.set(x,1.5,z);scene.add(tk);
+ [[0,3.4,0,1.9],[1.1,3,.4,1.4],[-1,3.1,-.5,1.5],[.2,3.9,.2,1.3]].forEach(([a,b,c,r])=>{const l=new THREE.Mesh(new THREE.SphereGeometry(r,12,10),M(0x3d7a35));l.position.set(x+a,b,z+c);scene.add(l)});blob(x,z,2.8);lab('Chaupal (peepal tree)',x,5.7,z,'#7a5a2a')}
+[[-15,-14.8],[-1.5,-14.6],[1,-15.4],[-17.5,-13.5]].forEach(([x,z])=>{const h=new THREE.Mesh(new THREE.ConeGeometry(.85,1.5,12),M(0xd8b455));h.position.set(x,.8,z);scene.add(h);blob(x,z,1.1)});
+{const x=-17.5,z=-10;box(1.4,1.1,1.4,0xf2e8d5,x,.55,z);const c=new THREE.Mesh(new THREE.ConeGeometry(.95,1.2,8),M(0xd9622b));c.position.set(x,1.7,z);scene.add(c);box(.05,.8,.05,0x8a5a2b,x,2.6,z);box(.4,.22,.02,0xff9933,x+.22,2.85,z);lab('Mandir',x,3.6,z,'#a34a1c')}
+[[15,-5,0xf0ead8],[19.3,2.2,0x6b4a32],[15.4,2.4,0xf0ead8],[19.3,-4.3,0x2a2420]].forEach(([x,z,c])=>{box(.9,.5,.4,c,x,.55,z);box(.3,.3,.3,c,x+.55,.75,z);[[-.3,-.14],[-.3,.14],[.3,-.14],[.3,.14]].forEach(([a,b])=>box(.08,.35,.08,0x3a2c22,x+a,.18,z+b))});
+// rain
+const RN=new Float32Array(900);for(let i=0;i<900;i+=3){RN[i]=(Math.random()-.5)*40;RN[i+1]=Math.random()*22;RN[i+2]=(Math.random()-.5)*34}
+const rgm=new THREE.BufferGeometry();rgm.setAttribute('position',new THREE.BufferAttribute(RN,3));const RP=new THREE.Points(rgm,new THREE.PointsMaterial({color:0xaed6f1,size:.16,transparent:true,opacity:.75}));RP.visible=false;RP.frustumCulled=false;scene.add(RP);
+// only necessary traffic
+function part(g,w,h,d,c,x,y,z){const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),M(c));m.position.set(x,y,z);g.add(m);return m}
+function wheel(g,x,z,r,w){const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,w,12),M(0x1d1d1d));m.rotation.x=Math.PI/2;m.position.set(x,r,z);g.add(m)}
+function mkV(t){const g=new THREE.Group();
+ if(t==='tractor'){part(g,1,.5,.55,0xc0392b,0,.6,0);part(g,.45,.5,.5,0xa83226,-.15,1.1,0);part(g,.6,.05,.65,0x2a2a2a,-.15,1.38,0);wheel(g,-.35,.36,.36,.2);wheel(g,-.35,-.36,.36,.2);wheel(g,.4,.3,.22,.14);wheel(g,.4,-.3,.22,.14);part(g,1,.3,.7,0x8a6a3b,-1.2,.55,0);wheel(g,-1.2,.38,.25,.14);wheel(g,-1.2,-.38,.25,.14)}
+ else if(t==='cart'){part(g,1.3,.1,.8,0x7a5a2b,0,.65,0);part(g,1.3,.3,.06,0x8a6a3b,0,.85,.4);part(g,1.3,.3,.06,0x8a6a3b,0,.85,-.4);wheel(g,0,.45,.45,.1);wheel(g,0,-.45,.45,.1);part(g,.9,.45,.3,0xe8e0d0,1.4,.65,0);part(g,.3,.3,.25,0xe8e0d0,1.95,.85,0);part(g,.9,.05,.05,0x5b3a1e,.95,.55,0)}
+ else if(t==='bike'){part(g,.7,.2,.12,0x2a3a5a,0,.4,0);part(g,.3,.4,.2,0xd9622b,-.05,.78,0);wheel(g,-.3,0,.18,.08);wheel(g,.3,0,.18,.08)}
+ else if(t==='tanker'){const c=new THREE.Mesh(new THREE.CylinderGeometry(.42,.42,1.8,16),M(0x3b82c4));c.rotation.z=Math.PI/2;c.position.set(-.5,.85,0);g.add(c);part(g,.6,.7,.7,0xeeeeee,.7,.6,0);wheel(g,-.9,0,.3,.8);wheel(g,.7,0,.3,.8)}
+ else{part(g,1.5,.7,.8,0xf4f4f0,0,.65,0);part(g,.5,.5,.76,0xcfe3ee,.5,.8,0);part(g,.5,.12,.82,0xe5484d,-.3,1.05,0);wheel(g,-.5,0,.3,.9);wheel(g,.5,0,.3,.9)}
+ return g}
+const VEH=[['tractor','h',7.65,1,2.4,0],['cart','v',-1.65,1,1.1,0],['bike','h',-11.65,-1,3.2,0],['bike','v',12.65,-1,3,0],['tanker','h',6.35,-1,2.6,1],['van','v',11.35,1,2.8,2]].map(([t,ax,c,dir,v,od],i)=>{const g=mkV(t);scene.add(g);return{g,ax,c,dir,v,od,s:-18+i*7}});
+let lt=performance.now();
+(function vl(t){requestAnimationFrame(vl);const d=Math.min(.05,(t-lt)/1000);lt=t;wellsVis();flowVis(d);
+ VEH.forEach(o=>{let on=true;if(o.od===1)on=!!last&&WL.some(k=>last[k].st!=='ok'&&last[k].st!=='unk');if(o.od===2)on=WO.some(w=>w.st!=='Fixed');o.g.visible=on;if(!on)return;
+  o.s+=o.v*o.dir*d;if(o.s>20)o.s=-20;if(o.s<-20)o.s=20;
+  if(o.ax==='h'){o.g.position.set(o.s,0,o.c);o.g.rotation.y=o.dir>0?0:Math.PI}else{o.g.position.set(o.c,0,o.s);o.g.rotation.y=o.dir>0?-Math.PI/2:Math.PI/2}});
+ RP.visible=RAIN;if(RAIN){for(let i=1;i<900;i+=3){RN[i]-=30*d;if(RN[i]<0)RN[i]=22}rgm.attributes.position.needsUpdate=true}})(lt);
+// ---- panel ----
+const bar=(p,c)=>`<div style="height:6px;background:var(--line);border-radius:3px;margin-top:3px"><div style="height:6px;border-radius:3px;width:${Math.max(2,Math.min(100,p))}%;background:${c}"></div></div>`,SN={ok:'normal',warn:'watch',crit:'critical',unk:'offline'};
+function paintT(){const E=document.getElementById('tm');if(!E||!last)return;
+ const sb=k=>`<button data-a="s" data-k="${k}" style="padding:1px 6px;font-size:12px"><span class="dot" style="background:${C[last[k].st]};margin-right:4px"></span>${S[k].id}</button>`,row=(k,x)=>`<div class="step" style="grid-template-columns:84px 1fr">${sb(k)}<span>${x}</span></div>`;
+ const ws=WL.map(k=>{const v=S[k].v,L=Math.round(v.Level),hp=S[k].id[0]==='H';return row(k,`${S[k].name.split(' · ')[0]} · level ${L}% · TDS ${Math.round(v.TDS)} · ${PUMP[k]?'in use':RAT[k]?'rationed (6-8 am, 6-8 pm)':'resting'} <button data-t="${k}" style="padding:1px 6px;font-size:12px">${hp?'Use':'Pump'} ${PUMP[k]?'ON':'OFF'}</button>${bar(L,C[last[k].st])}`)}).join('');
+ const gs=GW.map(k=>{const v=S[k].v;return row(k,`Water table ${v.Depth.toFixed(1)} m below ground · TDS ${Math.round(v.TDS)} · ${SN[last[k].st]}${bar(100-v.Depth/30*100,C[last[k].st])}`)}).join('');
+ const ps=PT.map(k=>{const v=S[k].v,dirty=v.Turb>5||v.TDS>350;return row(k,`Fill ${Math.round(v.Fill)}% · turbidity ${v.Turb.toFixed(1)} · TDS ${Math.round(v.TDS)} · ${dirty?'<b>contaminated: inlet closed, flow sent to settling chamber</b>':RAIN?'recharging the aquifer':'clean, standing by'}${bar(v.Fill,C[last[k].st])}`)}).join('');
+ const us=UD.map(k=>{const v=S[k].v;return row(k,`Flow ${Math.round(v.Flow)} L/min · level ${Math.round(v.Level)}% · ${last[k].st==='ok'?'flowing':last[k].st==='unk'?'sensor offline':'blockage risk'}${bar(v.Level,C[last[k].st])}`)}).join('');
+ const ad=GW.reduce((x,k)=>x+S[k].v.Depth,0)/GW.length;
+ const h=`<h3>Water, rain and ground</h3><div class="row"><button data-t="rn" class="${RAIN?'on':''}">Rain: ${RAIN?'ON':'OFF'}</button><button data-t="ug" class="${UG?'on':''}">Underground view: ${UG?'ON':'OFF'}</button><button data-t="au" class="${AUTO?'on':''}">Auto-manage: ${AUTO?'ON':'OFF'}</button></div>
+<div class="vals"><div><small>Avg water table</small><strong>${ad.toFixed(1)} m</strong></div><div><small>Clean pits</small><strong>${PT.filter(k=>S[k].v.Turb<=5&&S[k].v.TDS<=350).length}/${PT.length}</strong></div><div><small>Recharge</small><strong>${Math.round(REC*100)}%</strong></div></div>
+<h3>Wells and hand pumps</h3>${ws}<h3>Water table sensors (underground)</h3>${gs}<h3>Rainwater harvesting pits</h3>${ps}<h3>Underground drainage lines</h3>${us}
+<div class="note">${AUTO?'Auto: a source stops below 40% and restarts above 60% to protect the water table.':'Manual: you control each pump.'} Tank (WQ-01): TDS ${Math.round(S.wq.v.TDS)}, ${SN[last.wq.st]}.</div>${EV.slice(0,4).map(e=>`<div class="note" style="margin:2px 0">${tm(e.at)} · ${S[e.k].id}: ${e.t}</div>`).join('')}
+<div class="note">Traffic is only what a village needs: a tractor, a bullock cart and two bikes. A water tanker appears only on a low-water alert, and a repair crew only while a work order is open.</div>`;
+ if(h!==lh){lh=h;E.innerHTML=h}}
+document.addEventListener('click',e=>{const b=e.target.closest('button[data-t]');if(!b)return;const t=b.dataset.t;
+ if(t==='rn')RAIN=!RAIN;else if(t==='ug'){UG=!UG;setUG()}else if(t==='au')AUTO=!AUTO;else if(t in PUMP)PUMP[t]=!PUMP[t];paintT()});
+setInterval(paintT,400);
+setInterval(()=>{for(const k in AW){const s=S[k];if(s.log&&!s.log.done&&s.log.wo===null&&!s.wo){act('w',k);ev(k,'Work order WO-'+(woN-1)+' created automatically for '+s.id+'.');delete AW[k]}else if(!s.fault&&!s.log)delete AW[k]}},600);
+size();place();setNight();setUG();update();paintT();
+// ===== v3: villagers, citizen text requests, Pradhan -> work order -> SDM closure =====
+document.head.insertAdjacentHTML('beforeend','<style>#cp textarea,#cp select{font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:6px 8px;width:100%}#cp textarea{resize:vertical}#cp small{opacity:.8}.st{display:inline-block;padding:0 6px;border-radius:9px;background:var(--line);font-size:11px}</style>');
+const WN=['Ward 1 · Main road','Ward 2 · East lane','Ward 3 · North road','Ward 4 · West lane','Ward 5 · Near pond'];
+const RES=[['Ramesh Patel','Farmer',1],['Sunita Devi','ASHA worker',2],['Mohan Lal','Teacher',3],['Kamla Bai','Homemaker',4],['Geeta Verma','Anganwadi worker',5],['Rajesh Yadav','Shopkeeper',1],['Savitri Devi','Farmer',2],['Harish Meena','Driver',3],['Pooja Kushwaha','Student',4],['Dinesh Sharma','Panchayat secretary',5],['Lakshmi Bai','Homemaker',1],['Arjun Singh','Farmer',2],['Meena Kumari','Self-help group',3],['Suresh Dangi','Mason',4],['Radha Bai','Homemaker',5],['Bhagwan Singh','Retired soldier',1],['Anita Rathore','Nurse',2],['Vikram Gurjar','Farmer',3],['Kailash Malviya','Tailor',4],['Shanti Devi','Elder',5],['Ganesh Prasad','Farmer',1],['Rukmani Bai','Homemaker',2],['Deepak Jatav','Student',3],['Nirmala Devi','Farmer',4]];
+const CAT=[['wa','💧','Water supply not regular'],['rn','🛣️','New road / road repair'],['p','🕳️','Pothole (photo)'],['l','💡','Street light (photo)'],['cam','📹','Street camera broken (photo)'],['dr','🚰','Drain or sewage'],['hp','🔧','Hand pump / well repair'],['gb','🗑️','Garbage not collected'],['pw','⚡','Electricity / transformer'],['sc','🏫','School / health / other need']];
+const SMP={wa:'Water is not coming daily in our lane. We get supply only 2 or 3 days a week and it stops by morning. Please arrange daily supply at fixed hours.',rn:'Our lane has no proper road. It turns to mud in the rain and children and elders find it hard to walk. Please build a new CC road.',dr:'The drain near our houses is blocked and dirty water is standing on the street. Please clean it and fix the slope.',hp:'The hand pump near our house is broken and gives no water. Please repair it soon.',gb:'Garbage has not been collected for many days. It smells and causes mosquitoes. Please arrange daily collection.',pw:'The transformer trips often and the voltage is very low in the evening. Please take this up with the electricity department.',sc:'Please arrange a health camp for children and elders in our ward, and repair the school boundary wall.'};
+const REQ=[];let RQN=1,rv=null,lm='',lw='';
+Object.assign(cf,{cm:1,t:'wa',who:0,wd:1,txt:'',ur:'n'});
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])),cn=k=>(CAT.find(x=>x[0]===k)||[0,'',k])[2];
+// ---- no green status dots: green is reserved for "SMS sent" ----
+C.ok='#9db0b5';const GD='<span class="dot" style="background:#2f8f5b"></span>';
+const _p4=paint;paint=function(A){_p4(A);for(const k in mk){const m=mk[k],ok=A[k].st==='ok',show=!ok||k===sel,i=pick.indexOf(m);m.visible=show;if(show&&ok)m.material.color.set(0x5fb7d4);if(show&&i<0)pick.push(m);if(!show&&i>=0)pick.splice(i,1)}};
+// ---- village expansion: Primary School on the west side ----
+const GR2=box(15,.2,34,0x6f9a63,-27.5,-.1,0);box(15,3.8,34,0x6b4f35,-27.5,-2.1,0);
+const WT2=new THREE.Mesh(new THREE.PlaneGeometry(14.6,33.6),WT.material);WT2.rotation.x=-Math.PI/2;WT2.position.set(-27.5,-1.8,0);scene.add(WT2);
+const _s4=setUG;setUG=function(){_s4();GR2.material.transparent=UG;GR2.material.opacity=UG?.35:1;GR2.material.needsUpdate=true};
+box(15,.06,2.6,RC,-27.5,.03,7);box(2.2,.06,1.4,RC,-27,.03,5.2);box(11.6,.05,8.8,0xd8c9a0,-27.5,.03,0);
+const wl4=(w,d,x,z)=>box(w,.6,d,0xcdbb9a,x,.3,z);
+wl4(.2,13.8,-33.5,-2.2);wl4(.2,13.8,-21.5,-2.2);wl4(12.2,.2,-27.5,-9);wl4(5.3,.2,-30.85,4.6);wl4(4.3,.2,-23.65,4.6);
+box(.3,1.3,.3,0xb09a78,-28,.65,4.6);box(.3,1.3,.3,0xb09a78,-26,.65,4.6);
+// school building
+box(9,2.8,3,0xf4ead0,-27.5,1.4,-7);box(9.02,.4,3.02,0x2f7f9b,-27.5,.2,-7);box(9.6,.28,3.6,0xa8453a,-27.5,2.94,-7);box(9.6,.3,.15,0x8a3a30,-27.5,3.2,-5.2);
+[-30.4,-28.9,-26.1,-24.6].forEach(x=>{win(x,1.7,-5.47,.8,.75);box(.9,.06,.1,0xf4ead0,x,1.3,-5.45)});box(1.1,1.6,.06,0x5b3a1e,-27.5,.8,-5.47);
+box(9.4,.14,1.3,0x8a3a30,-27.5,2.45,-4.85);[-31.5,-29.5,-27.5,-25.5,-23.5].forEach(x=>box(.14,2.4,.14,0xe8dcc0,x,1.2,-4.3));blob(-27.5,-7,3.6);
+const rt4=box(1.8,.05,1,0x1c3f7a,-26,3.15,-7);rt4.rotation.x=-.3;const wtk=new THREE.Mesh(new THREE.CylinderGeometry(.5,.5,.7,16),M(0x3b82c4));wtk.position.set(-24.3,3.4,-7);scene.add(wtk);
+lab('Primary School',-27.5,4.5,-7,'#2b5a37');
+// flag, swing, slide, trees
+box(.06,4,.06,0xdddddd,-23.4,2,-2.5);box(.7,.12,.02,0xff9933,-23.05,3.75,-2.5);box(.7,.12,.02,0xffffff,-23.05,3.63,-2.5);box(.7,.12,.02,0x138808,-23.05,3.51,-2.5);
+box(2.4,.08,.08,0x555b60,-30,1.9,1.6);[[-31.2,-.4],[-31.2,.4],[-28.8,-.4],[-28.8,.4]].forEach(([x,z])=>{const p=box(.07,1.95,.07,0x555b60,x,.95,1.6+z);p.rotation.z=x<-30?-.22*(z<0?1:1):.22});
+[-30.4,-29.6].forEach(x=>{box(.03,1.4,.03,0x333333,x,1.2,1.6);box(.4,.05,.22,0x8a5a2b,x,.5,1.6)});
+const sl=box(.6,.08,2.1,0xd9622b,-25.6,.95,1.2);sl.rotation.x=.55;box(.6,.9,.08,0x777777,-25.6,.5,.1);lab('Playground',-28,3,1.6,'#c9731f');
+function tree(x,z,s){const t=new THREE.Mesh(trkG,trkM);t.position.set(x,.6*s,z);t.scale.setScalar(s);scene.add(t);[[0,1.6,0,1],[.35,2.1,-.2,.7]].forEach(([a,b,c,r])=>{const l=new THREE.Mesh(lfG,trM[0]);l.position.set(x+a*s,b*s,z+c*s);l.scale.setScalar(r*s);scene.add(l)});blob(x,z,1.1*s)}
+[[-32.6,-8],[-22.4,-3.5],[-32.7,3.6],[-22.6,10.5],[-33,12],[-27,13.5],[-30,-13],[-24,-13.5]].forEach(([x,z])=>tree(x,z,1+hs(x,z)*.4));
+// ---- little villagers: proportioned figures with faces, clothes and a walking stride ----
+const GN='mfmffmfmfmfmfmfmfmmfmfmf',MT=new Map(),mt=c=>{let m=MT.get(c);if(!m){m=new THREE.MeshLambertMaterial({color:c});MT.set(c,m)}return m};
+const cy=(g,r1,r2,h,c,x,y,z)=>{const m=new THREE.Mesh(new THREE.CylinderGeometry(r1,r2,h,8),mt(c));m.position.set(x,y,z);g.add(m);return m},
+ sh=(g,r,c,x,y,z,sx,sy,sz)=>{const m=new THREE.Mesh(new THREE.SphereGeometry(r,10,8),mt(c));m.position.set(x,y,z);m.scale.set(sx||1,sy||1,sz||1);g.add(m);return m};
+function person(o){const g=new THREE.Group(),b=new THREE.Group(),f=o.f,k=o.k,legs=[],arms=[];g.add(b);
+ for(const s of[-1,1]){const l=new THREE.Group();l.position.set(s*.075,.64,0);cy(l,.05,.04,.6,f&&!k?o.sk:k&&f?0xffffff:o.bot,0,-.3,0);const ft=new THREE.Mesh(new THREE.BoxGeometry(.09,.05,.15),mt(0x2a2420));ft.position.set(0,-.62,.03);l.add(ft);b.add(l);legs.push(l)}
+ if(f)cy(b,.13,k?.2:.27,k?.34:.66,o.bot,0,k?.47:.32,0);
+ cy(b,.11,.14,.5,o.top,0,.9,0);
+ for(const s of[-1,1]){const a=new THREE.Group();a.position.set(s*.19,1.12,0);cy(a,.04,.035,.42,o.top,0,-.21,0);sh(a,.04,o.sk,0,-.45,0);b.add(a);arms.push(a)}
+ cy(b,.04,.045,.08,o.sk,0,1.17,0);sh(b,.115,o.sk,0,1.28,0,1,1.08,1);sh(b,.013,0x1a1a1a,-.042,1.295,.1);sh(b,.013,0x1a1a1a,.042,1.295,.1);
+ const hm=new THREE.Mesh(new THREE.SphereGeometry(.124,10,8,0,6.283,0,f?2:1.7),mt(o.pallu||o.hair));hm.position.set(0,1.285,-.012);b.add(hm);
+ if(f&&!o.pallu)sh(b,.055,o.hair,0,1.27,-.12);if(o.turb)sh(b,.135,o.turb,0,1.36,0,1.1,.7,1.1);if(o.mu)sh(b,.03,0x2a2420,0,1.235,.105,1.6,.4,.5);
+ g.scale.setScalar(o.sc);g.userData={legs,arms,b,ph:Math.random()*6};scene.add(g);return g}
+const SK=[0xe0b48a,0xc68e63,0xa86f48],MTOP=[0xf0ead8,0x6b8fb5,0xc9a24a,0x8a9a6b,0xb5523b],MBOT=[0xe8e0d0,0x3a3f55,0x6b5a45,0xd8cfba],SAR=[0xc0392b,0x2f6f9b,0xd9a92b,0x4f8f45,0x8e5aa8,0xd9622b,0xd2527f],TB=[0xd9622b,0xf0ead8,0xc0392b];
+function adult(i){const f=GN[i]==='f',el=i===15||i===19,teen=i===8||i===22,o={f,k:teen,sk:SK[i%3],hair:el?0xcfcfcf:0x1a1512,sc:teen?.43:.5};
+ if(teen){o.top=f?0xffffff:0x9ec5e8;o.bot=f?0x2f5fa8:0x1f2f5a}else if(f){o.bot=SAR[i%7];o.top=SAR[(i+3)%7];if(i%2)o.pallu=o.bot}else{o.top=MTOP[i%5];o.bot=MBOT[i%4];if(i%4===1)o.turb=TB[i%3];o.mu=i%3===0}return o}
+const kid=i=>{const f=i%2===1;return{f,k:1,sk:SK[i%3],hair:0x1a1512,sc:.34+hs(i,9)*.06,top:f?0xffffff:0x9ec5e8,bot:f?0x2f5fa8:0x1f2f5a}};
+const RT=[['h',7.7,-18,18],['v',12.9,-13,13],['h',-10.3,-18,18],['v',-13.1,-13,13],['o',17,-1.5,3.4]],SP=[[-25.4,3.9],[5.9,-1.5],[-27.5,-1.2],[7,-5],[-4.5,1.7],[14.6,-3.4],[-9,1.3],[9.4,12.6]];
+const PP=[];RES.forEach((r,i)=>{const stand=i%3===2,rt=RT[r[2]-1],o={g:person(adult(i)),i,v:.5+hs(i,3)*.5,dir:i%2?1:-1,kind:stand?'stand':'route',rt};
+ if(stand){const s=SP[(i/3|0)%8];o.g.position.set(s[0],0,s[1]);o.g.rotation.y=Math.atan2(-s[0]*.3,-s[1]+3)}else o.s=rt[0]==='o'?hs(i,7)*6.28:rt[2]+(rt[3]-rt[2])*hs(i,7);PP.push(o)});
+const VP=PP.slice();
+for(let i=0;i<12;i++){const x=rn(-32.6,-22.4),z=rn(-3.4,3.6),o={g:person(kid(i)),kind:'wander',v:.9+hs(i,4)*.9,w:hs(i,2)*3,rx:[-32.6,-22.4],rz:[-3.4,3.6],tx:x,tz:z};o.g.position.set(x,0,z);PP.push(o)}
+[0,1].forEach(i=>{const o={g:person(kid(i+12)),kind:'route',rt:['h',6.7,-34,-20],v:.7,dir:i?1:-1,s:-30+i*6};PP.push(o)});
+{const o={g:person({f:1,k:0,sk:SK[0],hair:0x1a1512,top:0xf0ead8,bot:0x2f6f9b,sc:.5}),kind:'stand',v:0};o.g.position.set(-24.4,0,-2.1);o.g.rotation.y=-1.6;PP.push(o)}
+function step4(o,d){const g=o.g,u=g.userData,px=g.position.x,pz=g.position.z;let mv=true;
+ if(o.kind==='stand')mv=false;
+ else if(o.kind==='wander'){if(o.w>0){o.w-=d;mv=false}else{const dx=o.tx-px,dz=o.tz-pz,L=Math.hypot(dx,dz);if(L<.12){o.w=rn(1,4);o.tx=rn(o.rx[0],o.rx[1]);o.tz=rn(o.rz[0],o.rz[1]);mv=false}else{g.position.x+=dx/L*o.v*d;g.position.z+=dz/L*o.v*d;g.rotation.y=Math.atan2(dx,dz)}}}
+ else{const r=o.rt;let nx,nz;if(r[0]==='o'){o.s+=d*.22*o.v*o.dir;nx=r[1]+Math.cos(o.s)*r[3];nz=r[2]+Math.sin(o.s)*r[3]}else{o.s+=d*o.v*o.dir*1.3;if(o.s>r[3])o.dir=-1;if(o.s<r[2])o.dir=1;nx=r[0]==='h'?o.s:r[1];nz=r[0]==='h'?r[1]:o.s}
+  const dx=nx-px,dz=nz-pz;if(Math.hypot(dx,dz)>1e-4)g.rotation.y=Math.atan2(dx,dz);g.position.x=nx;g.position.z=nz}
+ u.ph+=mv?d*(o.v*6+1):0;const sw=mv?Math.sin(u.ph):0;u.legs[0].rotation.x=sw*.7;u.legs[1].rotation.x=-sw*.7;u.arms[0].rotation.x=-sw*.5;u.arms[1].rotation.x=sw*.5;u.b.position.y=mv?Math.abs(Math.cos(u.ph))*.03:Math.sin(performance.now()/700+g.id)*.004}
+const MK=new THREE.Mesh(new THREE.ConeGeometry(.12,.28,10),new THREE.MeshBasicMaterial({color:0x5fb7d4})),nc=document.createElement('canvas');MK.rotation.x=Math.PI;scene.add(MK);nc.width=256;nc.height=64;
+const nt=new THREE.CanvasTexture(nc),ns=new THREE.Sprite(new THREE.SpriteMaterial({map:nt}));ns.scale.set(2.4,.6,1);scene.add(ns);
+function selP(){const g=nc.getContext('2d');g.fillStyle='#1f6f8b';g.fillRect(0,0,256,64);g.fillStyle='#fff';g.font='bold 26px sans-serif';g.textAlign='center';g.fillText(RES[cf.who][0],128,42);nt.needsUpdate=true}
+let lt3=performance.now();
+(function pv(t){requestAnimationFrame(pv);const d=Math.min(.05,(t-lt3)/1000);lt3=t;PP.forEach(o=>step4(o,d));WT2.position.y=WT.position.y;
+ const s=VP[cf.who].g.position;MK.visible=ns.visible=citOpen;MK.position.set(s.x,1.05+Math.sin(t/300)*.06,s.z);ns.position.set(s.x,1.5,s.z)})(lt3);
+// ---- citizen app ----
+function citizen(){const c=document.getElementById('cp');c.style.display=citOpen?'block':'none';if(!citOpen)return;
+ const ps=cf.t==='p'||cf.t==='l'||cf.t==='cam',R=RES[cf.who],cnt=i=>REQ.filter(q=>q.who===i).length,on=(a,v,x)=>`<button data-a="${a}" data-i="${v}" class="${x===v?'on':''}">`;
+ const photo=`<input type="file" id="cph" accept="image/*" capture="environment"> <button data-a="cd">Use sample photo</button><br>${cf.ph?`<img src="${cf.ph}" style="max-width:200px;border-radius:6px;margin-top:6px">`:''}`;
+ c.innerHTML=`<div class="rh"><b>Citizen app · Demo Village</b><button data-a="cc">Close</button></div>
+<div class="n">Villagers on the app (${RES.length} shown, ${VILL} in the village). Tap a name to act as that person. They are walking in the 3D view.</div>
+<div class="row" style="margin:6px 0;max-height:92px;overflow:auto">${RES.map((p,i)=>`<button data-a="cw" data-i="${i}" class="${i===cf.who?'on':''}" style="padding:2px 7px;font-size:12px">${p[0]}<small> · W${p[2]}${cnt(i)?' · '+cnt(i)+' req':''}</small></button>`).join('')}</div>
+<div>Logged in as <b>${R[0]}</b> · ${R[1]} · ${WN[R[2]-1]}</div>
+<div class="n" style="margin-top:8px">1. What do you need?</div><div class="row">${CAT.map(x=>on('cy',x[0],cf.t)+x[1]+' '+x[2]+'</button>').join('')}</div>
+${ps?`<div class="n" style="margin-top:8px">${cf.t==='cam'?`2. Which camera?</div><div class="row">${CMN.map((m,j)=>on('cm',String(j+1),String(cf.cm))+'CM-0'+(j+1)+' · '+m+'</button>').join('')}</div>`:`2. Which road?</div><div class="row">${on('cr','1',cf.r)}Main road</button>${on('cr','2',cf.r)}East lane</button>${on('cr','3',cf.r)}North road</button>${cf.t==='l'?on('cr','4',cf.r)+'Basti road</button>':''}</div>`}<div class="n" style="margin-top:8px">3. Take a photo (needed)</div>${photo}`
+:`<div class="n" style="margin-top:8px">2. Area</div><select id="cwd">${WN.map((w,i)=>`<option value="${i+1}" ${cf.wd===i+1?'selected':''}>${w}</option>`).join('')}</select>
+<div class="n" style="margin-top:8px">3. Write your request in Hindi or English <button data-a="cz" style="padding:1px 6px;font-size:12px">Fill sample text</button></div><textarea id="ctx" rows="4" placeholder="Example: water is not coming daily in our lane...">${esc(cf.txt)}</textarea>
+<div class="row" style="margin-top:6px"><span class="n">How urgent?</span>${on('cu','n',cf.ur)}Normal</button>${on('cu','u',cf.ur)}Urgent</button></div><div class="n" style="margin-top:8px">4. Photo (optional)</div>${photo}`}
+<div style="margin-top:10px"><button class="go" data-a="cs">Submit</button></div><div style="margin-top:8px">${cf.msg}</div>
+<h3>My requests · ${R[0]}</h3><div id="cmy"></div>
+<div class="n" style="margin-top:8px">Demo only. Text requests go to the Pradhan office as a report, a work order is created, and when the Pradhan office marks it fixed the completion report goes to the SDM office automatically. Pothole, street light and broken camera photos use the faster sensor route.</div>`;lm='';paintMy()}
+document.addEventListener('input',e=>{if(e.target.id==='ctx')cf.txt=e.target.value});
+document.addEventListener('change',e=>{if(e.target.id==='cwd')cf.wd=+e.target.value});
+const stg=q=>q.fix?`<span class="y">Fixed ${tm(q.fix)}</span> · SDM office informed${q.sdmAck?' (acknowledged)':''}${q.sms?' · '+GD+'SMS sent to you':''}`:q.wo?`Work order ${q.wo} created ${tm(q.woAt)} · repair in progress`:q.pdr?`Received by Pradhan office ${tm(q.pdr)} · work order being created`:'Sending to Pradhan office...';
+function paintMy(){const e=document.getElementById('cmy');if(!e)return;const m=REQ.filter(q=>q.who===cf.who).reverse(),h=m.length?m.map(q=>`<div class="step" style="grid-template-columns:36px 1fr"><i>#${q.n}</i><span><b>${cn(q.cat)}</b> <span class="st">${q.pr}</span><br><small>${esc(q.text.slice(0,90))}${q.text.length>90?'...':''}</small><br>${stg(q)}</span></div>`).join(''):'<div class="n">No requests yet from this person.</div>';if(h!==lm){lm=h;e.innerHTML=h}}
+const _sc=submitC;submitC=function(){if(cf.t==='p'||cf.t==='l')return _sc();submitReq()};
+function submitReq(){const t=cf.txt.trim();if(t.length<12){cf.msg='<span class="n">Please write your request first (a short sentence is enough).</span>';citizen();return}
+ const n=RQN++,same=REQ.filter(x=>x.cat===cf.t&&x.ward===cf.wd).length,g=VP[cf.who].g.position,q={n,cat:cf.t,who:cf.who,ward:cf.wd,text:t,photo:cf.ph,ur:cf.ur,at:Date.now(),same,pr:cf.ur==='u'?'P1':same>=2?'P2':'P3',pdr:null,wo:null,woAt:null,fix:null,sdm:null,sdmAck:null,sms:null};
+ REQ.push(q);pos['rq'+n]=[g.x,1,g.z];sendPkt('rq'+n,PRD,0x5fb7d4);
+ setTimeout(()=>{if(REQ.includes(q)){q.pdr=Date.now();update()}},1200);
+ setTimeout(()=>{if(REQ.includes(q)){q.wo='WO-C'+String(n).padStart(2,'0');q.woAt=Date.now();update()}},3500);
+ cf.msg=`<span class="y">Request #${n} sent to the Pradhan office. A work order will be created automatically.</span>`;cf.txt='';cf.ph=null;citizen();update()}
+function markFix(n){const q=REQ.find(x=>x.n===n);if(!q||!q.wo||q.fix)return;q.fix=Date.now();pos['rf'+n]=[...PRD];sendPkt('rf'+n,OFF,0xf2b33d);
+ setTimeout(()=>{q.sdm=Date.now();update()},1200);setTimeout(()=>{q.sms=Date.now();const g=VP[q.who].g.position;pos['sm'+n]=[...PRD];sendPkt('sm'+n,[g.x,1,g.z],0x4cc582);update()},2000);setTimeout(()=>{q.sdmAck=Date.now();update()},5000)}
+// ---- Pradhan office: requests table and letters ----
+function reqTable(){const rows=REQ.slice().reverse().map(q=>{const p=RES[q.who];return `<tr><td>${q.n}</td><td><b>${p[0]}</b><br><small>${WN[q.ward-1]}<br>${tm(q.at)}</small></td><td><b>${cn(q.cat)}</b>${q.ur==='u'?' <span class="st">Urgent</span>':''}<br><small>${esc(q.text.slice(0,140))}${q.text.length>140?'...':''}</small>${q.photo?`<br><img src="${q.photo}" style="height:36px;border-radius:4px;margin-top:4px">`:''}</td><td>${q.pr}${q.same?`<br><small>${q.same} similar</small>`:''}</td><td>${q.wo?`<span class="y">${q.wo}</span><br><small>${tm(q.woAt)}</small>`:'<span class="n">Creating...</span>'}</td><td>${q.fix?`<span class="y">Fixed</span> ${tm(q.fix)}${q.sms?'<br>'+GD+'<small>SMS sent</small>':''}`:q.wo?'Work in progress':q.pdr?'Received':'<span class="n">Sending...</span>'}</td><td>${q.fix?(q.sdmAck?`<span class="y">Ack</span> ${tm(q.sdmAck)}`:q.sdm?'Received '+tm(q.sdm):'Sending...'):'<span class="n">Sent when fixed</span>'}</td><td>${q.wo&&!q.fix?`<button data-a="rf" data-i="${q.n}">Mark fixed</button> `:''}<button data-a="rv" data-i="${q.n}">View report</button></td></tr>`}).join('');
+ return `<h3 style="margin-top:10px">Citizen requests · ${REQ.length} received · ${REQ.filter(q=>q.wo).length} work orders · ${REQ.filter(q=>q.fix).length} fixed and reported to SDM</h3><div class="tw"><table><thead><tr><th>#</th><th>Citizen</th><th>Request</th><th>Priority</th><th>Work order</th><th>Status</th><th>SDM copy</th><th>Action</th></tr></thead><tbody>${rows||'<tr><td colspan="8" class="n">No citizen requests yet. Open the Citizen app and write one.</td></tr>'}</tbody></table></div><h3>Sensor and photo reports</h3>`}
+function rLetter(r){const q=REQ.find(x=>x.n===rv);if(!q){rv=null;return false}
+ const p=RES[q.who],ref='GDAI/CR/'+new Date().getFullYear()+'/'+String(q.n).padStart(3,'0'),d=new Date(q.at).toLocaleDateString(),
+ a=`To: The Pradhan, Gram Panchayat Demo Village\nFrom: GaoDrishti AI Citizen Portal, for ${p[0]} (${p[1]}), ${WN[q.ward-1]}\nRef: ${ref}    Date: ${d} ${tm(q.at)}\nSubject: ${q.pr} priority citizen request: ${cn(q.cat)}\n\nRespected Pradhan ji,\n\nA resident has written to the Gram Panchayat:\n"${q.text}"\n\nUrgency chosen by the citizen: ${q.ur==='u'?'Urgent':'Normal'}. Other residents of this ward who asked for the same: ${q.same}.\nWork order: ${q.wo?q.wo+' created at '+tm(q.woAt):'being created'}.\n\nRegards,\nGaoDrishti AI Citizen Portal`,
+ b=q.fix?`To: The Sub-Divisional Magistrate (SDM), Demo Tehsil\nFrom: Gram Panchayat Demo Village (sent automatically by GaoDrishti AI when the work was marked fixed)\nRef: ${ref}/CLOSURE    Date: ${new Date(q.fix).toLocaleDateString()}\nSubject: Work completed: ${cn(q.cat)}, ${WN[q.ward-1]}\n\nRespected Sir/Madam,\n\nThe following citizen request has been resolved by the Gram Panchayat.\nRequest by ${p[0]}: "${q.text}"\nReceived by Pradhan office: ${tm(q.pdr||q.at)}\nWork order: ${q.wo}, created ${tm(q.woAt)}\nMarked fixed: ${tm(q.fix)} (${Math.round((q.fix-q.at)/1000)} s from request to fix)\nThe resident has been informed by SMS.\n\nFor your records.\nGram Panchayat Demo Village`:'';
+ r.innerHTML=`<div class="rh"><b>Citizen request #${q.n} · ${ref}</b><button data-a="rx">Back to sheet</button></div><div class="n">Report 1 · to the Pradhan office (${q.pdr?'<span class="y">received '+tm(q.pdr)+'</span>':'sending...'})</div><pre>${esc(a)}</pre>${q.fix?`<div class="n">Report 2 · to the SDM office, sent automatically on Mark fixed (${q.sdmAck?'<span class="y">acknowledged '+tm(q.sdmAck)+'</span>':q.sdm?'<span class="y">received '+tm(q.sdm)+'</span>':'sending...'})</div><pre>${esc(b)}</pre>`:'<div class="n">Report 2 · the completion report to the SDM office is sent automatically when the Pradhan office marks this fixed.</div>'}`;return true}
+const _rp3=reports;reports=function(){const r=document.getElementById('rp'),b=document.getElementById('rb'),L=()=>b.textContent='Pradhan office ('+(LOG.length+REQ.length)+')';
+ if(repOpen&&rv!==null&&rLetter(r)){r.style.display='block';L();return}
+ _rp3();if(repOpen&&vw===null){const h=r.querySelector('.rh');if(h)h.insertAdjacentHTML('afterend',reqTable())}if(repOpen)r.innerHTML=r.innerHTML.replace(/<span class="y">Sent to /g,'<span class="y">'+GD+'Sent to ');L()};
+// ---- right panel: citizen work orders ----
+document.getElementById('wos').insertAdjacentHTML('afterend','<div id="rwos"></div>');
+function paintReq(){const e=document.getElementById('rwos'),w=REQ.filter(q=>q.wo),h=w.length?'<div class="note" style="margin:6px 0 2px">Citizen request work orders</div>'+w.map(q=>`<div class="wo"><span><b>${q.wo}</b> ${cn(q.cat)} · ${q.pr} · ${q.fix?'Fixed':'Open'}</span>${q.fix?'':`<button data-a="rf" data-i="${q.n}">Mark fixed</button>`}</div>`).join(''):'';if(h!==lw){lw=h;e.innerHTML=h}if(citOpen)paintMy()}
+const _u3=update;update=function(){_u3();paintReq()};
+// ---- actions and demo ----
+const _a3=act;act=function(a,k,i){
+ if(a==='d3')return demo3();
+ if(a==='r'){REQ.length=0;RQN=1;rv=null;cf.txt='';cf.msg='';cf.ph=null}
+ if(a==='c'||a==='o')rv=null;
+ if(a==='cw'){cf.who=+i;cf.wd=RES[+i][2];cf.msg='';selP();citizen();return}
+ if(a==='cy'){cf.t=i;cf.msg='';citizen();return}
+ if(a==='cu'){cf.ur=i;citizen();return}
+ if(a==='cz'){cf.txt=SMP[cf.t]||'';cf.msg='';citizen();return}
+ if(a==='rf'){markFix(+i);update();return}
+ if(a==='rv'){rv=+i;repOpen=true;citOpen=false;update();return}
+ if(a==='rx'){rv=null;update();return}
+ return _a3(a,k,i)};
+function demo3(){dt.forEach(clearTimeout);dt=[];act('r');
+ const q=[[300,()=>{cf.who=0;cf.t='wa';cf.wd=1;cf.txt=SMP.wa;cf.ur='n';citOpen=true;repOpen=false;selP();citizen();say('1 · Ramesh Patel opens the Citizen app and writes that water is not coming daily.')}],
+ [4500,()=>{submitReq();say('2 · The request goes to the Pradhan office as a report.')}],
+ [8500,()=>say('3 · A work order is created automatically.')],
+ [10000,()=>{citOpen=false;repOpen=true;vw=null;rv=null;update()}],
+ [13500,()=>{act('rf','',REQ.length?REQ[REQ.length-1].n:0);say('4 · The Pradhan office marks it fixed. The completion report goes to the SDM office automatically and Ramesh gets an SMS.')}],
+ [21000,()=>say('')]];
+ q.forEach(([t,f])=>dt.push(setTimeout(f,t)))}
+document.getElementById('scen').insertAdjacentHTML('beforeend','<button data-a="d3" class="on">Run citizen request demo</button>');
+document.querySelector('#hud span').textContent+=' · '+RES.length+' villagers · Primary School · 6 street cameras';
+// ===== v5: street cameras (feed loss -> auto work order; physical damage -> citizen app) =====
+unit.Feed='Video feed %';
+const CMN=['Main road west','Main road east','East lane','North road','West lane','School gate'],CMP=[[-6,8.9,-6,7],[9,8.9,9,7],[10.4,-4,12,-4],[3,-8.6,3,-11],[-12.4,2,-14,2],[-24.5,5.5,-27,4.6]],CAM={};
+CMP.forEach(([x,z,tx,tz],i)=>{const k='cm'+(i+1);S[k]=mk_('CM-0'+(i+1),'Street camera · '+CMN[i],[420,500,350,380,300,320][i],{Feed:97});S[k].v={...S[k].base};
+ const pole=box(.1,3.3,.1,0x555b60,x,1.65,z);pole.userData.k=k;const gp=new THREE.Group();gp.position.set(x,3.4,z);gp.rotation.y=Math.atan2(tx-x,tz-z);scene.add(gp);
+ const hm=new THREE.MeshLambertMaterial({color:0xe8e8e8}),h=new THREE.Mesh(new THREE.BoxGeometry(.5,.28,.3),hm);h.position.z=.18;h.userData.k=k;gp.add(h);
+ const ln=new THREE.Mesh(new THREE.CylinderGeometry(.1,.1,.1,12),new THREE.MeshBasicMaterial({color:0x111111}));ln.rotation.x=Math.PI/2;ln.position.z=.36;gp.add(ln);
+ const hd=new THREE.Mesh(new THREE.BoxGeometry(.54,.04,.4),mt(0x333333));hd.position.set(0,.17,.2);gp.add(hd);
+ const len=Math.hypot(Math.hypot(tx-x,tz-z),3.4),cg=new THREE.ConeGeometry(len*.32,len,16,1,true);cg.rotateX(-Math.PI/2);cg.translate(0,0,len/2);
+ const cn=new THREE.Mesh(cg,new THREE.MeshBasicMaterial({color:0x9ec5ff,transparent:true,opacity:.13,depthWrite:false,side:THREE.DoubleSide}));cn.position.set(x,3.4,z);scene.add(cn);cn.lookAt(tx,0,tz);
+ pos[k]=[x,4.5,z];const m=new THREE.Mesh(new THREE.SphereGeometry(.3,16,12),new THREE.MeshBasicMaterial({color:C.ok}));m.position.set(...pos[k]);m.userData.k=k;scene.add(m);mk[k]=m;pick.push(pole,h);CAM[k]={hm,cn,gp}});
+const _fl5=FLD;FLD=k=>k.slice(0,2)==='cm'?'Feed':_fl5(k);
+const _st5=step;step=function(k){if(k.slice(0,2)!=='cm')return _st5(k);const s=S[k],v=s.v;if(s.failed){s.conf=Math.max(30,s.conf-4);return}s.conf=100;
+ v.Feed=cl(s.fault?v.Feed-25:v.Feed+(97-v.Feed)*.4+rn(-.8,.8),0,100);s.h.push({...v});if(s.h.length>40)s.h.shift()};
+const _as5=assess;assess=function(k){if(k.slice(0,2)!=='cm')return _as5(k);const s=S[k],v=s.v;let st='ok',risk=0,det='Camera is sending a clear video feed.',pred='No trend toward a threshold.',act='No action needed.';
+ risk=cl(Math.round((97-v.Feed)*1.05),0,100);st=v.Feed<20?'crit':v.Feed<70?'warn':'ok';
+ if(st!=='ok'){det=s.broken?'Camera is physically damaged (reported by a villager with a photo). No usable video.':'Camera is not sending video: feed at '+Math.round(v.Feed)+'%. Likely a power, network or hardware fault.';
+  pred='This street is unmonitored until the camera is restored. Incidents and road or light faults here will go unseen.';
+  act=s.broken?'Replace the damaged camera and its mount. If it was vandalised, inform the police.':'Send a technician to check power, network cable and lens. Replace the unit if it is damaged. A work order is raised automatically.'}
+ if(s.failed){st='unk';det='Sensor offline. Showing last known values as estimates.';pred='Predictions paused until fresh data arrives.';act='Dispatch a technician and cross-check with the nearest working node.'}
+ const sc=risk*(.5+s.pop/1200);return{st,risk,det,pred,act,pr:st==='ok'?'–':st==='unk'?'P2':sc>=55?'P1':sc>=30?'P2':'P3'}};
+const _fv5=fillV;fillV=function(e){const o=_fv5(e);if(e.k.slice(0,2)==='cm'&&!e.problem.startsWith('Sensor offline')){o.issue=e.problem.includes('physically')?'broken street camera':'street camera not sending video';o.request='approve a technician visit to restore or replace the camera'}return o};
+// auto work order for cameras
+setInterval(()=>{for(const k in CAM){const s=S[k],e=s.log;if(e&&!e.done&&e.wo===null&&!s.wo&&Date.now()-e.arose>2500){act('w',k);ev(k,'Camera '+s.id+(s.broken?' reported broken':' stopped sending video')+'. Work order WO-'+(woN-1)+' created automatically.')}}},700);
+// right panel list and 3D state
+document.getElementById('tm').insertAdjacentHTML('afterend','<div id="tmc"></div>');let lc='';
+function paintCam(){if(!last)return;for(const k in CAM){const c=CAM[k],bad=last[k].st!=='ok',s=S[k];c.hm.color.set(!bad?0xe8e8e8:s.broken?0x4a4a4a:0x8a8a8a);c.cn.visible=!bad;c.gp.rotation.x=s.broken&&bad?.8:0;c.gp.rotation.z=s.broken&&bad?.4:0}
+ const E=document.getElementById('tmc');if(!E)return;
+ const rows=Object.keys(CAM).map(k=>{const s=S[k],st=last[k].st;return `<div class="step" style="grid-template-columns:84px 1fr"><button data-a="s" data-k="${k}" style="padding:1px 6px;font-size:12px"><span class="dot" style="background:${C[st]}"></span>${s.id}</button><span>${CMN[+k[2]-1]} · feed ${Math.round(s.v.Feed)}% · ${s.failed?'sensor offline':st==='ok'?'live':s.broken?'<b>physically broken</b>':'<b>no feed</b>'} <button data-a="f" data-k="${k}" style="padding:1px 6px;font-size:12px">Cut feed</button> <button data-a="cbk" data-k="${k}" style="padding:1px 6px;font-size:12px">Smash</button></span></div>`}).join('');
+ const h=`<h3>Street cameras</h3>${rows}<div class="note">A camera that stops sending video raises an alert, a report and a work order automatically. If it is physically broken, a villager can report it in the Citizen app with a photo.</div>`;if(h!==lc){lc=h;E.innerHTML=h}}
+const _u5=update;update=function(){_u5();paintCam()};
+// citizen complaint for a physically broken camera
+function submitCam(){if(!cf.ph){cf.msg='<span class="n">Please add a photo of the broken camera first.</span>';citizen();return}
+ const k='cm'+cf.cm,s=S[k],old=s.log&&!s.log.done?s.log:null;
+ if(old){old.photo=cf.ph;cf.msg='<span class="y">Already reported (report #'+old.n+'). Your photo was added to it.</span>'}
+ else{s.fault=1;s.broken=1;s.v.Feed=0;const a=assess(k),e={n:LOGN++,k,src:'citizen',photo:cf.ph,problem:'Citizen complaint: street camera '+s.id+' ('+CMN[cf.cm-1]+') is physically broken, reported with a photo.',arose:Date.now(),wo:null,ver:null,done:null,pr:a.pr,risk:a.risk,pred:a.pred,act:a.act,vals:unit.Feed+' 0'};
+  LOG.push(e);s.log=e;autoSend(e);cf.msg='<span class="y">Complaint received. Report #'+e.n+' was sent to the SDM office and the Pradhan office, an SMS went to all villagers, and a work order will be created automatically.</span>'}
+ cf.ph=null;citizen();update()}
+const _sc5=submitC;submitC=function(){if(cf.t==='cam')return submitCam();return _sc5()};
+const _a5=act;act=function(a,k,i){
+ if(a==='d4')return demo4();
+ if(a==='r')for(const q in CAM)S[q].broken=0;
+ if(a==='n'){const w=WO[+i];if(w&&w.st==='Verified'&&w.k.slice(0,2)==='cm')S[w.k].broken=0}
+ if(a==='cm'){cf.cm=+i;cf.msg='';citizen();return}
+ if(a==='cbk'){const s=S[k];s.fault=1;s.broken=1;sel=k;update();return}
+ return _a5(a,k,i)};
+function demo4(){dt.forEach(clearTimeout);dt=[];act('r');const fx=k=>{const i=WO.findIndex(w=>w.k===k);if(i>=0)act('n','',i)};
+ const q=[[500,()=>{act('f','cm2');say('1 · Camera CM-02 on the main road stops sending video.')}],
+ [4500,()=>say('2 · The twin flags it, reports go to the SDM and Pradhan offices, and a work order is created automatically.')],
+ [8500,()=>{fx('cm2');say('3 · Officer verifies on site.')}],[11000,()=>{fx('cm2');say('4 · Camera repaired. Video is back and the alert clears.')}],
+ [13500,()=>{cf.t='cam';cf.cm=4;cf.ph=sample();cf.who=0;selP();citOpen=true;repOpen=false;citizen();say('5 · A villager finds the North road camera smashed and reports it in the Citizen app with a photo.')}],
+ [17500,()=>{submitC();say('6 · Reports go to the SDM and Pradhan offices, the village gets an SMS, and a work order is created automatically.')}],
+ [24000,()=>fx('cm4')],[26000,()=>{fx('cm4');say('7 · Camera replaced and back online.')}],[31000,()=>say('')]];
+ q.forEach(([t,f])=>dt.push(setTimeout(f,t)))}
+document.getElementById('scen').insertAdjacentHTML('beforeend','<button data-a="f" data-k="cm2">Camera feed lost (CM-02)</button><button data-a="cbk" data-k="cm4">Camera smashed (CM-04)</button><button data-a="d4" class="on">Run camera demo</button>');
+setUG();place();selP();update();
+const BO=30; // Basti is moved this far east of the village; a road joins them
+// ===== v6: Basti (dense settlement, Ward 6) · scenic polish · fly-to views =====
+document.head.insertAdjacentHTML('beforeend','<style>#hud{background:rgba(255,255,255,.58);backdrop-filter:blur(6px);padding:8px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.6);box-shadow:0 4px 16px rgba(0,0,0,.08)}#stage.night #hud{background:rgba(10,24,30,.55);border-color:rgba(255,255,255,.12)}#panel h3{display:flex;align-items:center;gap:6px}#panel h3:before{content:"";width:4px;height:12px;border-radius:2px;background:var(--acc)}button{border-radius:999px;padding:5px 11px;transition:transform .15s,border-color .15s}button:hover{transform:translateY(-1px)}.vb{position:absolute;right:12px;bottom:10px;z-index:6;display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}.vb button{background:var(--pane);box-shadow:0 2px 8px rgba(0,0,0,.2)}#dens{margin-top:6px;font-size:12px;color:#7a3b12;background:#ffe9cf;border:1px solid #f2b980;border-radius:8px;padding:3px 8px;display:inline-block}#stage.night #dens{background:#3a2a1a;color:#ffd9a8;border-color:#7a5a30}</style>');
+{
+const BX=30,LN=[['v',24+BO,-15,15],['v',34+BO,-15,15],['h',-10,21+BO,39+BO],['h',-3.5,21+BO,39+BO],['h',7,21+BO,39+BO],['h',13.5,21+BO,39+BO]];
+const BG=new THREE.Group();BG.position.x=BO;scene.add(BG);const toB=()=>{scene.add=o=>BG.add(o)},toS=()=>{delete scene.add};toB();
+// ---- ground, lanes ----
+const GR3=box(20,.2,34,0xb59f78,BX,-.1,0);box(20,3.8,34,0x6b4f35,BX,-2.1,0);
+const WT3=new THREE.Mesh(new THREE.PlaneGeometry(19.6,33.6),WT.material);WT3.rotation.x=-Math.PI/2;WT3.position.set(BX,-1.8,0);scene.add(WT3);
+const _s6=setUG;setUG=function(){_s6();GR3.material.transparent=UG;GR3.material.opacity=UG?.35:1;GR3.material.needsUpdate=true};
+const LC=0x978462;box(19,.06,1.9,RC,29.5,.03,7);[24,34].forEach(x=>box(1.3,.05,34,LC,x,.03,0));[-10,-3.5,13.5].forEach(z=>box(20,.05,1.3,LC,30,.03,z));
+// ---- outer countryside: terrain with holes for the village and the Basti, open land between them, one road joining them ----
+toS();
+box(BO,.06,2.6,0x3d4752,20+BO/2,.03,7);for(let x=22;x<20+BO-1;x+=3)box(1.4,.07,.14,0xffc933,x,.035,7);
+box(BO,.04,.22,0xf4f4f4,20+BO/2,.02,5.55);box(BO,.04,.22,0xf4f4f4,20+BO/2,.02,8.45);box(BO,.03,.5,0xc9b27c,20+BO/2,.015,5.2);box(BO,.03,.5,0xc9b27c,20+BO/2,.015,8.8);
+lab('Road to Basti',20+BO/2,3,7,'#7a5a2a');
+{const CX=22,tsh=new THREE.Shape();tsh.absarc(CX,0,190,0,Math.PI*2,false);
+ const hole=(x0,x1)=>{const p=new THREE.Path();p.moveTo(x0,-17.4);p.lineTo(x1,-17.4);p.lineTo(x1,17.4);p.lineTo(x0,17.4);p.closePath();tsh.holes.push(p)};hole(-35.4,20.4);hole(19.6+BO,40.4+BO);
+ const tg=new THREE.Mesh(new THREE.ShapeGeometry(tsh,24),new THREE.MeshLambertMaterial({color:0x7fd35a}));tg.rotation.x=-Math.PI/2;tg.position.y=-.22;scene.add(tg);
+ const out=(x,z,m)=>(x>-35-m&&x<20+m&&z>-17-m&&z<17+m)||(x>20+BO-m&&x<52+BO+m&&z>-17-m&&z<17+m)||(x>20-m&&x<20+BO+m&&z>3-m&&z<11+m);
+ for(let i=0;i<24;i++){const a=hs(i,1)*6.28,r=34+hs(i,2)*75,x=Math.cos(a)*r+CX,z=Math.sin(a)*r*.8,w=7+hs(i,3)*7,d=5+hs(i,4)*5;if(out(x,z,5))continue;box(w,.05,d,[0xa6e04f,0xffd23a,0x62c85f,0xd49a52][i%4],x,-.17,z)}
+ for(let i=0;i<64;i++){const x=(hs(i,5)-.5)*230+CX,z=(hs(i,6)-.5)*130;if(out(x,z,3))continue;tree(x,z,1+hs(x,z)*.6)}
+ for(let i=0;i<8;i++){const x=24+i*(BO-8)/7,z=(i%2?12:2.2)+hs(i,3)*1.6;tree(x,z,.9+hs(i,4)*.5)}
+ for(let i=0;i<12;i++){const a=i/12*6.28+.2,r=150+hs(i,7)*20,hh=9+hs(i,8)*9,m=new THREE.Mesh(new THREE.ConeGeometry(18+hs(i,9)*12,hh,8),new THREE.MeshLambertMaterial({color:[0x45b872,0x34a384,0x62c466][i%3]}));m.position.set(CX+Math.cos(a)*r,hh/2-.3,Math.sin(a)*r);m.scale.z=.7;scene.add(m)}
+ scene.fog=new THREE.Fog(0xcdeaff,170,400)}
+toB();
+// ---- the Basti: hundreds of tightly packed huts (instanced for speed) ----
+const inLane=(x,z)=>Math.abs(x-24)<.8||Math.abs(x-34)<.8||Math.abs(x-29)<1||Math.abs(z+10)<.75||Math.abs(z+3.5)<.75||Math.abs(z-7)<1.1||Math.abs(z-13.5)<.75,
+ plaza=(x,z)=>x>30.4&&x<37.8&&z>8.6&&z<12.7,KO=(x,z)=>Math.hypot(x-24.6,z+14)<2||Math.hypot(x-37,z+14.6)<2.4;
+const B=[],R=[],D=[],Wn=[],TK=[],WALL=[0xc9a77a,0xb5523b,0x9fb7c9,0xa9c4a0,0xd8c9a0,0xc68e63,0xe6c9b0],TARP=[0x2f6fb5,0x3a8f5a,0xd9822b,0x8d9399,0xa0522d,0x2b7a9e,0xc0392b];let nb=0;
+for(let x=20.9;x<39.3;x+=1.72)for(let z=-16.2;z<16.3;z+=1.62){const jx=x+(hs(x,z)-.5)*.35,jz=z+(hs(z,x)-.5)*.3;if(inLane(jx,jz)||plaza(jx,jz)||KO(jx,jz))continue;nb++;
+ const q=hs(jx,jz),w=1.25+hs(x,z+2)*.35,d=1.2+hs(z,x+2)*.3,h=.95+hs(x+3,z)*.55,tl=(hs(z,x+7)-.5)*.3;
+ B.push([jx,h/2,jz,w,h,d,0,WALL[(nb*5)%7],0]);R.push([jx,h+.05,jz,w+.22,.1,d+.22,0,TARP[(nb*3)%7],tl]);D.push([jx-w*.2,.4,jz+d/2+.02,.38,.8,.04,0,0x4a3322,0]);Wn.push([jx+w*.25,h*.62,jz+d/2+.02,.3,.28,.04,0,0xffffff,0]);
+ if(q>.6){B.push([jx,h+.52,jz,w*.92,1.04,d*.92,0,WALL[(nb*2+1)%7],0]);R.push([jx,h+1.09,jz,w+.12,.1,d+.12,0,TARP[(nb*5+2)%7],-tl]);Wn.push([jx-w*.2,h+.55,jz+d*.46+.02,.3,.28,.04,0,0xffffff,0])}
+ if(q<.2)TK.push([jx+.2,h+.4,jz-.1,.3,.55,.3,0,[0x1e1e1e,0x3b82c4][nb%2],0]);
+ if(q>.3&&q<.4&&z>5&&z<6.5&&x<28.5)R.push([jx,1.0,jz+d/2+.55,w,.06,.9,0,[0xe5484d,0xf2b33d,0x2f8f5b][nb%3],.28])}
+const dm=new THREE.Object3D(),cc=new THREE.Color();
+function inst(L,mat,geo){const m=new THREE.InstancedMesh(geo||new THREE.BoxGeometry(1,1,1),mat,L.length);L.forEach((a,i)=>{dm.position.set(a[0],a[1],a[2]);dm.scale.set(a[3],a[4],a[5]);dm.rotation.set(0,a[6],a[8]);dm.updateMatrix();m.setMatrixAt(i,dm.matrix);m.setColorAt(i,cc.set(a[7]))});m.instanceMatrix.needsUpdate=true;m.instanceColor.needsUpdate=true;scene.add(m);return m}
+inst(B,new THREE.MeshLambertMaterial({color:0xffffff}));inst(R,new THREE.MeshLambertMaterial({color:0xffffff}));inst(D,new THREE.MeshLambertMaterial({color:0xffffff}));
+const GWm=new THREE.MeshBasicMaterial({color:0x9ec5d8});inst(Wn,GWm);inst(TK,new THREE.MeshLambertMaterial({color:0xffffff}),new THREE.CylinderGeometry(.5,.5,1,10));
+// laundry lines with colourful clothes
+{const ls=[],cl2=[];[-14,-12,-7,-5.5,-1,1.5,3,9,11,15].forEach((z,i)=>[24,34].forEach((x,j)=>{if((i+j)%3===2)return;const y=2.1+hs(i,j)*.2;ls.push(new THREE.Vector3(x-1.4,y,z),new THREE.Vector3(x+1.4,y,z));for(let c=0;c<3;c++)cl2.push([x-.9+c*.9,y-.25,z,.38,.5,.03,0,[0xe5484d,0xffffff,0xf2b33d,0x3b82c4,0xd2527f][(i+c+j)%5],0])}));
+ scene.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(ls),new THREE.LineBasicMaterial({color:0x444444})));inst(cl2,new THREE.MeshLambertMaterial({color:0xffffff}))}
+// lamps + tangled overhead wires
+const L6=[],PL=[[24,-10],[34,-10],[24,2],[34,2],[24,13.5],[34,13.5],[29,-3.5],[29,7]],hl=new THREE.MeshBasicMaterial({color:0xffd76a,transparent:true,opacity:.35,depthWrite:false});
+PL.forEach(([x,z])=>{box(.12,3.3,.12,0x4a4f55,x,1.65,z);const b=new THREE.Mesh(new THREE.SphereGeometry(.2,10,8),new THREE.MeshBasicMaterial({color:0x777777}));b.position.set(x,3.35,z);scene.add(b);const h=new THREE.Mesh(new THREE.CircleGeometry(2.2,20),hl);h.rotation.x=-Math.PI/2;h.position.set(x,.1,z);scene.add(h);L6.push({b,h})});
+{const pts=[];PL.forEach((a,i)=>PL.forEach((b,j)=>{if(j<=i||Math.hypot(a[0]-b[0],a[1]-b[1])>13)return;for(let w=0;w<2;w++){const c=new THREE.QuadraticBezierCurve3(new THREE.Vector3(a[0],3.2-w*.15,a[1]),new THREE.Vector3((a[0]+b[0])/2+w*.3,2.4-w*.2,(a[1]+b[1])/2),new THREE.Vector3(b[0],3.2-w*.15,b[1])).getPoints(10);for(let k=0;k<10;k++)pts.push(c[k],c[k+1])}}));
+ scene.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(pts),new THREE.LineBasicMaterial({color:0x2a2a2a})))}
+// open drain (nala) with floating plastic
+const drn=box(.9,.1,33.4,0x6a5a46,29,.05,0),dw=new THREE.Mesh(new THREE.BoxGeometry(.55,.1,33.4),new THREE.MeshBasicMaterial({color:0x6b6a4a}));dw.position.set(29,.1,0);dw.userData.k='bd1';drn.userData.k='bd1';scene.add(dw);
+const DD=[];for(let i=0;i<22;i++){const d=new THREE.Mesh(new THREE.SphereGeometry(.1,6,5),new THREE.MeshBasicMaterial({color:[0xe5484d,0xf2b33d,0xffffff,0x3b82c4,0x8a6a3b][i%5]}));scene.add(d);DD.push({d,u:i/22,o:(hs(i,3)-.5)*.3})}
+// shared tap-stand + queue of pots
+box(4.4,.18,2.8,0xbdb5a5,34,.09,10.6);[[-1.8,-1],[1.8,-1],[-1.8,1],[1.8,1]].forEach(([a,b])=>box(.12,2,.12,0x555b60,34+a,1.1,10.6+b*.6));
+const tkM=new THREE.Mesh(new THREE.CylinderGeometry(.85,.85,1.1,18),new THREE.MeshLambertMaterial({color:0x3b82c4}));tkM.position.set(34,2.6,10.6);tkM.userData.k='bt1';scene.add(tkM);
+[0,1,2,3].forEach(i=>{box(.1,.9,.1,0x8d9296,32.6+i*.95,.6,11.6);box(.2,.1,.3,0x2f5f8a,32.6+i*.95,1,11.7)});
+[0xe5484d,0x2f6fb5,0xf2b33d,0x3a8f5a,0xd9622b,0xd2527f,0x2b7a9e,0xe5484d].forEach((c,i)=>{const p=new THREE.Mesh(new THREE.CylinderGeometry(.2,.16,.3,10),mt(c));p.position.set(32.3+i*.5,.3,12.35+(i%2)*.25);scene.add(p)});
+// community toilet, garbage point
+box(3,1.8,2,0xcfc8b8,37,.9,-14.6);box(3.3,.14,2.3,0x8a8f94,37,1.87,-14.6);[-.9,0,.9].forEach(a=>box(.6,1.3,.05,0x2f7f9b,37+a,.65,-13.58));
+const GBG=new THREE.Group();GBG.position.set(24.6,0,-14);scene.add(GBG);[[0,.3,0,.8,0x6b5a40],[.5,.25,.3,.5,0x8a3a30],[-.5,.22,.2,.45,0x3b82c4],[.1,.55,-.1,.45,0x7a7a6a],[-.2,.2,-.5,.4,0xd9a92b],[.6,.2,-.4,.35,0xe8e0d0]].forEach(([a,b,c,r,col])=>{const s=new THREE.Mesh(new THREE.SphereGeometry(r,8,6),mt(col));s.position.set(a,b,c);s.userData.k='bg1';GBG.add(s);pick.push(s)});
+// labels
+function lab2(t,x,y,z,bg,w){const c=document.createElement('canvas');c.width=640;c.height=96;const g=c.getContext('2d');g.fillStyle=bg;g.fillRect(0,0,640,96);g.fillStyle='#fff';g.font='bold 44px sans-serif';g.textAlign='center';g.fillText(t,320,64);const s=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c)}));s.scale.set(w,w*.15,1);s.position.set(x,y,z);scene.add(s)}
+lab2('BASTI · WARD 6 · dense settlement',29.5,6.6,16.2,'#c2571a',9);lab('Shared tap-stand',34,4.2,10.6,'#2f6f8a');lab('Open drain',29,1.9,-6,'#5a4632');lab('Community toilet',37,3.2,-14.6,'#5a4632');lab('Garbage point',24.6,2.4,-14,'#5a4632');
+// cooking smoke
+const SM=[];for(let i=0;i<10;i++){const b=B[(i*11+3)%B.length];for(let j=0;j<5;j++)SM.push({x:b[0],y:b[4]+.2,z:b[2],u:j/5})}
+const SA=new Float32Array(SM.length*3),SG=new THREE.BufferGeometry();SG.setAttribute('position',new THREE.BufferAttribute(SA,3));const SMK=new THREE.Points(SG,new THREE.PointsMaterial({color:0xd0d0d0,size:.55,transparent:true,opacity:.45,depthWrite:false}));SMK.frustumCulled=false;scene.add(SMK);
+toS();
+// ---- the crowd ----
+const BR=[['Shanti Bai','Daily wage worker',6],['Imran Sheikh','Rickshaw puller',6],['Rekha Devi','Domestic worker',6]];WN.push('Ward 6 · Basti');
+BR.forEach((r,j)=>{RES.push(r);const o={g:person(adult(4+j*4)),kind:'route',rt:LN[j*2],v:.6,dir:j%2?1:-1,s:-8+j*9};PP.push(o);VP.push(o)});
+for(let j=0;j<14;j++){const rt=LN[j%6];PP.push({g:person(adult((j*5+2)%24)),kind:'route',rt,v:.35+hs(j,5)*.45,dir:j%2?1:-1,s:rt[2]+(rt[3]-rt[2])*hs(j,8)})}
+for(let j=0;j<6;j++){const rt=LN[(j+1)%6];PP.push({g:person(kid(j+2)),kind:'route',rt,v:.6+hs(j,4)*.4,dir:j%2?1:-1,s:rt[2]+(rt[3]-rt[2])*hs(j,6)})}
+for(let j=0;j<4;j++){const x=rn(31+BO,37+BO),z=rn(8.9,12),o={g:person(kid(j+9)),kind:'wander',v:.8,w:hs(j,2)*3,rx:[31+BO,37+BO],rz:[8.9,12],tx:x,tz:z};o.g.position.set(x,0,z);PP.push(o)}
+for(let j=0;j<5;j++){const o={g:person(adult(j*4+1)),kind:'stand',v:0};o.g.position.set(32.4+BO+j*.75,0,13.1);o.g.rotation.y=Math.PI;PP.push(o)}
+// ---- monitoring nodes: same detect → predict → act loop, higher priority because more people depend on them ----
+const BS=['bt1','bd1','bg1'];S.bt1=mk_('BT-01','Basti shared tap-stand · water quality',900,{pH:7.3,TDS:380,Turb:3});S.bd1=mk_('BD-01','Basti open drain · flow node',800,{Flow:55,Level:35});S.bg1=mk_('BG-01','Basti garbage point · fill sensor',600,{Fill:30});
+BS.forEach(k=>S[k].v={...S[k].base});
+[['bt1',34+BO,3.6,10.6],['bd1',29+BO,2.2,-6],['bg1',24.6+BO,2.8,-14]].forEach(([k,x,y,z])=>{pos[k]=[x,y,z];const m=new THREE.Mesh(new THREE.SphereGeometry(.42,20,16),new THREE.MeshBasicMaterial({color:C.ok}));m.position.set(x,y,z);m.userData.k=k;scene.add(m);mk[k]=m;pick.push(m)});pick.push(tkM,dw,drn);
+const _fl6=FLD;FLD=k=>k==='bt1'?'TDS':k==='bd1'?'Level':k==='bg1'?'Fill':_fl6(k);
+const _st6=step;step=function(k){if(!BS.includes(k))return _st6(k);const s=S[k],v=s.v;if(s.failed){s.conf=Math.max(30,s.conf-4);return}s.conf=100;
+ if(k==='bt1'){if(s.fault){v.TDS=Math.min(900,v.TDS+rn(15,26));v.Turb=Math.min(12,v.Turb+.4);v.pH=Math.max(6.1,v.pH-.03)}else{v.TDS+=(380-v.TDS)*.2+rn(-4,4);v.Turb+=(3-v.Turb)*.2+rn(-.1,.1);v.pH+=(7.3-v.pH)*.2+rn(-.02,.02)}}
+ if(k==='bd1'){if(s.fault){v.Flow=Math.max(8,v.Flow-3);v.Level=Math.min(100,v.Level+2.5)}else{v.Flow+=(55-v.Flow)*.25+rn(-1,1);v.Level+=(35-v.Level)*.25+rn(-.6,.6)}}
+ if(k==='bg1')v.Fill=s.fault?Math.min(100,v.Fill+3.5):Math.max(15,v.Fill+(30-v.Fill)*.2+rn(-.4,.4));
+ s.h.push({...v});if(s.h.length>40)s.h.shift()};
+const _as6=assess;assess=function(k){if(!BS.includes(k))return _as6(k);const s=S[k],v=s.v;let st='ok',risk=0,det='All readings normal.',pred='No trend toward a threshold.',act='No action needed.';
+ if(k==='bt1'){const bad=v.TDS>550||v.Turb>5||v.pH<6.5,w=v.TDS>450||v.Turb>3.8||v.pH<6.9;risk=cl(Math.round(Math.max((v.TDS-380)/5,(v.Turb-3)*14,(7.3-v.pH)*60)),0,100);st=bad?'crit':w?'warn':'ok';
+  if(st!=='ok')det='Tap-stand water is contaminated ('+(v.TDS>450?'high TDS ':'')+(v.Turb>3.8?'high turbidity ':'')+(v.pH<6.9?'low pH':'')+'). Possible sewage seepage from the open drain.';
+  const sl=slope(s,'TDS');if(bad)pred='Unsafe to drink now. Risk of diarrhoea, cholera and typhoid for every household using this tap.';else if(sl>1)pred='TDS reaches the unsafe limit in about '+Math.round((550-v.TDS)/sl)+' min.';
+  if(st!=='ok')act='Stop the tap supply, send a safe-water tanker to the basti, chlorinate the line and collect a lab sample.'}
+ if(k==='bd1'){const bad=v.Flow<30&&v.Level>60,w=v.Flow<42||v.Level>50;risk=cl(Math.round((55-v.Flow)*1.2+(v.Level-35)*.8),0,100);st=bad?'crit':w?'warn':'ok';
+  if(st!=='ok')det='Open drain: flow falling while level rises (plastic blockage pattern).';const sl=slope(s,'Level');if(sl>.5)pred='Overflow into the lanes and homes in about '+Math.round((100-v.Level)/sl)+' min.';
+  if(st!=='ok')act='Send the sanitation crew to desilt the drain and remove plastic. Add a drain cover.'}
+ if(k==='bg1'){risk=cl(Math.round((v.Fill-30)*1.4),0,100);st=v.Fill>90?'crit':v.Fill>70?'warn':'ok';if(st!=='ok')det='Garbage point is '+Math.round(v.Fill)+'% full.';const sl=slope(s,'Fill');if(sl>.5&&v.Fill<100)pred='Overflows in about '+Math.round((100-v.Fill)/sl)+' min. Waste then clogs the open drain.';if(st!=='ok')act='Send the collection vehicle now and add a second bin.'}
+ if(s.failed){st='unk';det='Sensor offline. Showing last known values as estimates.';pred='Predictions paused until fresh data arrives.';act='Dispatch a technician and cross-check with the nearest working node.'}
+ const sc=risk*(.5+s.pop/1200);return{st,risk,det,pred,act,pr:st==='ok'?'–':st==='unk'?'P2':sc>=55?'P1':sc>=30?'P2':'P3'}};
+const _fv6=fillV;fillV=function(e){const o=_fv6(e);if(!BS.includes(e.k)||e.problem.startsWith('Sensor offline'))return o;
+ if(e.k==='bt1'){o.issue='unsafe water at the basti tap-stand';o.request='send a water-testing team and arrange tanker supply of safe drinking water to the basti'}
+ if(e.k==='bd1'){o.issue='open drain blockage in the basti';o.request='sanction sanitation support to desilt the open drain before it overflows into homes'}
+ if(e.k==='bg1'){o.issue='garbage overflow in the basti';o.request='approve extra collection trips and a second bin'}return o};
+// ---- visuals that follow the data ----
+const tnk=mkV('tanker');tnk.position.set(20,0,7);scene.add(tnk);tnk.visible=false;let tx=20;
+// ---- camera: fly between views ----
+let CC={x:20},LK={x:21,z:0},T6=null;rad=118;
+place=function(){cam.position.set(CC.x+rad*Math.sin(ph)*Math.sin(th),rad*Math.cos(ph),rad*Math.sin(ph)*Math.cos(th));cam.lookAt(LK.x,0,LK.z)};
+const VIEWS={v:{cx:20,lx:21,lz:0,rad:118,th:.8,ph:1},b:{cx:30+BO,lx:30+BO,lz:1,rad:30,th:.55,ph:.85},t:{cx:20,lx:21,lz:0,rad:150,th:.8,ph:.2}};
+function flyTo(n){T6=VIEWS[n]}
+['pointerdown','wheel'].forEach(e=>el.addEventListener(e,()=>T6=null,{passive:true}));
+// ---- panel ----
+document.getElementById('stage').insertAdjacentHTML('beforeend','<div class="vb"><button data-a="vw" data-k="v">🏘️ Whole village</button><button data-a="vw" data-k="b">🏚️ Zoom to Basti</button><button data-a="vw" data-k="t">⬇ Top view</button></div>');
+document.getElementById('hint').textContent='Drag to rotate · scroll to zoom · use the view buttons to fly to the Basti · click a glowing marker, pipe or well';
+document.querySelector('#hud span').textContent+=' · Basti (Ward 6)';
+const ratio=(nb/(20*34))/(hn/(40*34));document.querySelector('#hud span').insertAdjacentHTML('afterend','<div id="dens">Basti · '+nb+' homes · ~'+nb*5+' people · about '+ratio.toFixed(1)+'× denser than the rest of the village (simulated)</div>');
+document.getElementById('tmc').insertAdjacentHTML('afterend','<div id="tmb"></div>');let lb='';
+function paintB(){if(!last)return;const E=document.getElementById('tmb');if(!E)return;
+ const sb=k=>`<button data-a="s" data-k="${k}" style="padding:1px 6px;font-size:12px"><span class="dot" style="background:${C[last[k].st]};margin-right:4px"></span>${S[k].id}</button>`,row=(k,x)=>`<div class="step" style="grid-template-columns:84px 1fr">${sb(k)}<span>${x}</span></div>`,t=S.bt1.v,d=S.bd1.v,g=S.bg1.v,u=n=>last[n].st;
+ const h=`<h3>Basti (Ward 6) · dense settlement</h3><div class="vals"><div><small>Homes</small><strong>${nb}</strong></div><div><small>People (est.)</small><strong>~${nb*5}</strong></div><div><small>Density</small><strong>${ratio.toFixed(1)}×</strong></div></div>
+${row('bt1',`Tap-stand · TDS ${Math.round(t.TDS)} · turbidity ${t.Turb.toFixed(1)} · ${u('bt1')==='ok'?'safe to drink':'<b>unsafe</b>'}${bar(Math.min(100,t.TDS/9),C[u('bt1')])}`)}
+${row('bd1',`Open drain · flow ${Math.round(d.Flow)} L/min · level ${Math.round(d.Level)}% · ${u('bd1')==='ok'?'flowing':'<b>blockage risk</b>'}${bar(d.Level,C[u('bd1')])}`)}
+${row('bg1',`Garbage point · ${Math.round(g.Fill)}% full · ${u('bg1')==='ok'?'ok':'<b>needs pickup</b>'}${bar(g.Fill,C[u('bg1')])}`)}
+<div class="note">Many people share one tap and one open drain here, so the same fault scores a higher priority (severity × people served). A safe-water tanker appears when the tap-stand water is unsafe.</div><button data-a="d5" class="on" style="margin-top:6px">Run Basti demo</button>`;if(h!==lb){lb=h;E.innerHTML=h}}
+const _u6=update;update=function(){_u6();paintB()};setInterval(paintB,500);
+document.getElementById('scen').insertAdjacentHTML('beforeend',[['f','bt1','Contaminate Basti tap'],['f','bd1','Block Basti drain'],['f','bg1','Garbage overflow (Basti)'],['d5','','Run Basti demo']].map(([a,k,t])=>`<button data-a="${a}" data-k="${k}"${a==='d5'?' class="on"':''}>${t}</button>`).join(''));
+const _a6=act;act=function(a,k,i){if(a==='d5')return demo5();if(a==='vw'){flyTo(k);return}return _a6(a,k,i)};
+function demo5(){dt.forEach(clearTimeout);dt=[];act('r');const q=[
+ [300,()=>{flyTo('b');say('1 · The Basti: the densest part of the village. Hundreds of people share one tap-stand, one open drain and one garbage point.')}],
+ [5500,()=>{act('f','bd1');say('2 · Plastic blocks the open drain. Flow drops, level rises, and the AI predicts overflow into the lanes.')}],
+ [11500,()=>{act('f','bt1');say('3 · Sewage seeps into the tap-stand. Water quality alert. About 900 people depend on this tap, so it is ranked P1.')}],
+ [17500,()=>{act('w','bt1');say('4 · Work order created from the twin. A safe-water tanker is sent to the Basti.')}],
+ [22500,()=>{act('w','bd1');say('5 · Sanitation crew work order for the drain. Reports go to the SDM and Pradhan offices, and SMS to villagers.')}],
+ [28500,()=>{flyTo('v');say('6 · Same twin, same loop (detect, predict, act, report), now covering the whole village including the Basti.')}],[35000,()=>say('')]];
+ q.forEach(([t,f])=>dt.push(setTimeout(f,t)))}
+// ---- night look and animation ----
+const _n6=setNight;setNight=function(){_n6();scene.fog.color.set(night?0x101a4d:0xcdeaff);GWm.color.set(night?0xffd98a:0x9ec5d8);L6.forEach(l=>{l.h.visible=night;l.b.material.color.set(night?0xffe08a:0x777777)});SMK.material.opacity=night?.3:.45};
+let l6=performance.now();(function bl(t){requestAnimationFrame(bl);const d=Math.min(.05,(t-l6)/1000);l6=t;WT3.position.y=WT.position.y;
+ if(T6){const k=1-Math.pow(.03,d);CC.x+=(T6.cx-CC.x)*k;LK.x+=(T6.lx-LK.x)*k;LK.z+=(T6.lz-LK.z)*k;rad+=(T6.rad-rad)*k;th+=(T6.th-th)*k;ph+=(T6.ph-ph)*k;place();if(Math.abs(rad-T6.rad)<.2&&Math.abs(th-T6.th)<.01&&Math.abs(ph-T6.ph)<.01)T6=null}
+ SM.forEach((s,i)=>{s.u=(s.u+d*.22)%1;SA[i*3]=s.x+s.u*.9+Math.sin(s.u*6+i)*.15;SA[i*3+1]=s.y+s.u*3.2;SA[i*3+2]=s.z});SG.attributes.position.needsUpdate=true;
+ if(!last)return;const fl=S.bd1.v.Flow/55;DD.forEach(o=>{o.u=(o.u+d*.05*Math.max(.08,fl))%1;o.d.position.set(29+o.o,.17,-16.5+o.u*33)});
+ const bt=last.bt1.st,bd=last.bd1.st;tkM.material.color.set(bt==='crit'?0x8a6a3b:bt==='warn'?0x6d8a7a:0x3b82c4);dw.material.color.set(bd==='crit'?0x7a3a2a:bd==='warn'?0x8a7a3a:0x6b6a4a);
+ const f=.6+S.bg1.v.Fill/100*.9;GBG.scale.setScalar(f);tnk.visible=bt!=='ok';if(!tnk.visible)tx=20;else{tx=Math.min(26.5+BO,tx+d*8);tnk.position.set(tx,0,7)}})(l6);
+setUG();place();setNight();update();
+}
+
+// ===== v7: Nagar Nigam office, basti ward heads, automatic work orders =====
+{
+const NNO=[44.5+BO,3.6,6],NNK=['bt1','bd1','bg1'],LN7=[['v',24+BO,-15,15],['v',34+BO,-15,15],['h',-10,21+BO,39+BO],['h',-3.5,21+BO,39+BO],['h',7,21+BO,39+BO],['h',13.5,21+BO,39+BO]];
+let nnOpen=false,nrN=1,wi=0;const NR=[];
+document.head.insertAdjacentHTML('beforeend','<style>#np{position:absolute;inset:48px 10px 10px;background:var(--pane);border:1px solid var(--line);border-radius:8px;overflow:auto;padding:10px 12px;z-index:5;font-size:13px}</style>');
+// ---- Nagar Nigam office (serves the Basti) ----
+box(7,.3,5.5,0xbdb5a5,44.5+BO,-.07,6.3);office(44.5+BO,6,0xe8c9a0,0xb5523b);
+{const c=document.createElement('canvas');c.width=320;c.height=64;const g=c.getContext('2d');g.fillStyle='#b5523b';g.fillRect(0,0,320,64);g.fillStyle='#fff';g.font='bold 30px sans-serif';g.textAlign='center';g.fillText('Nagar Nigam Office',160,44);const s=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c)}));s.scale.set(5,1,1);s.position.set(44.5+BO,4.9,6);scene.add(s)}
+// ---- routing: Basti reports to Nagar Nigam, then the SDM office (village keeps Pradhan -> SDM) ----
+const _au7=autoSend;autoSend=function(e){if(!NNK.includes(e.k))return _au7(e);e.nn=1;e.sent=Date.now();sendPkt(e.k,OFF);sendPkt(e.k,NNO);for(let q=0;q<6;q++)sendPkt(e.k,HP[(e.n*7+q*5)%HP.length],0x4cc582);
+ setTimeout(()=>{e.nnr=Date.now();update()},1200);setTimeout(()=>{e.sms=Date.now();update()},2200);setTimeout(()=>{e.deliv=Date.now();update()},2500);setTimeout(()=>{e.ack=Date.now();update()},7000)};
+const _rp7=reports;reports=function(){const L=LOG,e=vw!==null?LOG.find(x=>x.n===vw):null;LOG=e&&e.nn?L:L.filter(x=>!x.nn);try{_rp7()}finally{LOG=L}};
+// ---- work orders are created automatically for every alert; Nagar Nigam items are then verified by the SDM and fixed automatically ----
+setInterval(()=>{const now=Date.now();for(const k in S){const s=S[k],e=s.log;if(!e||e.done)continue;
+ if(e.wo===null&&!s.wo&&now-e.arose>1500){act('w',k);e.tWO=now;ev(k,'Work order WO-'+(woN-1)+' created automatically for '+s.id+(e.nn?' and sent to the SDM office':'')+'.');continue}
+ if(e.nn&&e.wo!==null){const w=WO[e.wo];if(!w)continue;if(w.st==='Created'){e.tWO=e.tWO||now;if(now-e.tWO>6000){pos['nv'+e.n]=[...OFF];sendPkt('nv'+e.n,NNO,0x4cc582);act('n','',e.wo);e.tV=Date.now()}}else if(w.st==='Verified'){e.tV=e.tV||now;if(now-e.tV>6000)act('n','',e.wo)}}}},700);
+// ---- 24 Basti ward heads ----
+const NM=['Sunita','Ramesh','Meena','Aslam','Geeta','Pooja','Salim','Kamla','Dinesh','Farida','Raju','Lata','Imran','Sarita','Mohan','Nasreen','Vijay','Savitri','Arif','Durga','Manoj','Rukhsar','Deepak','Parvati'],WH=[];
+const CT=[['Drain blocked','Nala jam hai, ganda paani gali mein aa raha hai'],['Garbage not lifted','Kachra 3 din se nahi uthaya gaya'],['Hand pump leaking','Handpump se paani bah raha hai'],['Street light off','Gali ki batti band hai'],['Sewage in tap water','Nal ke paani mein badbu aur ganda paani'],['Toilet damaged','Saamudayik shauchalay toota hai']];
+for(let i=0;i<24;i++){const rt=LN7[i%6],o={g:person(adult((i*3+1)%24)),kind:'route',rt,v:.3+hs(i,9)*.3,dir:i%2?1:-1,s:rt[2]+(rt[3]-rt[2])*hs(i,11)};PP.push(o);
+ const c=document.createElement('canvas');c.width=64;c.height=64;const g=c.getContext('2d');g.fillStyle='#b5523b';g.beginPath();g.arc(32,32,28,0,6.3);g.fill();g.fillStyle='#fff';g.font='bold 30px sans-serif';g.textAlign='center';g.fillText(i+1,32,43);
+ const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:new THREE.CanvasTexture(c)}));sp.scale.set(.7,.7,1);scene.add(sp);o.sp=sp;WH.push(o)}
+function ph7(t,w){const c=document.createElement('canvas');c.width=200;c.height=120;const g=c.getContext('2d');g.fillStyle='#7d8c8f';g.fillRect(0,0,200,120);g.fillStyle='#5b6468';g.fillRect(0,80,200,40);g.fillStyle=['#6b5a3a','#8a6a3b','#3b82c4','#222','#7a5a2a','#a99'][t];for(let i=0;i<5;i++)g.fillRect(20+i*32,60+(i%2)*10,26,18+(i*7)%12);
+ g.fillStyle='#fff';g.font='bold 13px sans-serif';g.fillText('Ward '+w+' · '+CT[t][0],8,16);g.fillText(new Date().toLocaleTimeString([],{hour12:false}),8,112);return c.toDataURL('image/jpeg',.6)}
+const hp=w=>{const p=WH[w-1].g.position;return[p.x,1.6,p.z]};
+function wardSend(w){const t=Math.floor(hs(nrN,w)*CT.length),n=nrN++,q={n,w,head:NM[w-1],t,txt:CT[t][1],photo:ph7(t,w),at:Date.now(),wo:null,ver:null,fix:null};NR.push(q);pos['wc'+n]=hp(w);sendPkt('wc'+n,NNO,0xffffff);
+ setTimeout(()=>{q.rec=Date.now();update()},1200);
+ setTimeout(()=>{q.wo='NN-'+String(n).padStart(3,'0');pos['ws'+n]=[...NNO];sendPkt('ws'+n,OFF,0xf2b33d);update()},2600);
+ setTimeout(()=>{q.sdm=Date.now();update()},4400);
+ setTimeout(()=>{q.ver=Date.now();pos['wv'+n]=[...OFF];sendPkt('wv'+n,NNO,0x4cc582);update()},10000);
+ setTimeout(()=>{q.fix=Date.now();pos['wf'+n]=[...NNO];sendPkt('wf'+n,hp(w),0x4cc582);update()},16000)}
+const burst=()=>{for(let w=1;w<=24;w++)setTimeout(()=>wardSend(w),w*350)};
+setTimeout(()=>wardSend(1),3000);setInterval(()=>{if(NR.length<150)wardSend(wi++%24+1)},8000);
+// ---- Nagar Nigam report panel ----
+document.getElementById('stage').insertAdjacentHTML('beforeend','<button id="nb" data-a="nno" style="position:absolute;right:285px;top:10px;z-index:6">Nagar Nigam (0)</button><div id="np" style="display:none"></div>');
+let lnn='';function paintNN(){const b=document.getElementById('nb'),p=document.getElementById('np');if(!b)return;const sl=LOG.filter(e=>e.nn);b.textContent='Nagar Nigam ('+(NR.length+sl.length)+')';p.style.display=nnOpen?'block':'none';if(!nnOpen)return;
+ const y=t=>t?'<span class="y">Yes</span> '+tm(t):'<span class="n">Not yet</span>',nF=NR.filter(q=>q.fix),avg=nF.length?Math.round(nF.reduce((a,q)=>a+q.fix-q.at,0)/nF.length/1000):0;
+ const rows=NR.slice().reverse().map(q=>`<tr><td>${q.n}</td><td>${tm(q.at)}<br><b>Ward ${q.w}</b> · ${q.head}</td><td><b>${CT[q.t][0]}</b><br><small>${q.txt}</small><br><img src="${q.photo}" style="height:40px;border-radius:4px;margin-top:4px"></td><td>${q.wo?'<span class="y">'+q.wo+'</span><br><small>auto-created</small>':'<span class="n">–</span>'}</td><td>${q.sdm?'<span class="y">Sent</span> '+tm(q.sdm):'<span class="n">–</span>'}</td><td>${y(q.ver)}</td><td>${q.fix?'<span class="y">Fixed</span> '+tm(q.fix)+'<br><small>'+Math.round((q.fix-q.at)/1000)+' s</small>':'<span class="n">Open</span>'}</td></tr>`).join('');
+ const srows=sl.slice().reverse().map(e=>{const w=e.wo!==null?WO[e.wo]:null;return`<tr><td>S${e.n}</td><td>${tm(e.arose)}<br><b>AI sensor</b></td><td>${S[e.k].id}<br><small>${e.problem}</small></td><td>${w?'<span class="y">WO-'+w.n+'</span><br><small>auto-created</small>':'<span class="n">–</span>'}</td><td>${e.sent?'<span class="y">Sent</span> '+tm(e.sent):'–'}</td><td>${y(e.ver)}</td><td>${e.done?'<span class="y">Fixed</span> '+tm(e.done):'<span class="n">Open</span>'}</td></tr>`}).join('');
+ const th='<thead><tr><th>#</th><th>Raised</th><th>Problem</th><th>Work order</th><th>Sent to SDM</th><th>SDM verified</th><th>Status</th></tr></thead>';
+ const h=`<div class="rh"><b>Nagar Nigam office · Basti report monitor</b><span>${NR.length} ward complaints · ${NR.filter(q=>q.wo).length} work orders (auto) · ${NR.filter(q=>q.ver).length} verified by SDM · ${nF.length} fixed${avg?' · avg '+avg+' s to fix':''}</span><span><button data-a="wh">All 24 ward heads send now</button> <button data-a="nno">Close</button></span></div><div class="note">Chain: ward head photo and request → Nagar Nigam → work order created automatically → SDM office → verification → marked fixed → shown here.</div><h3>Ward-head complaints (24 wards)</h3><div class="tw"><table>${th}<tbody>${rows||'<tr><td colspan="7" class="n">Waiting for the first ward head complaint...</td></tr>'}</tbody></table></div><h3>Sensor alerts (Basti)</h3><div class="tw"><table>${th}<tbody>${srows||'<tr><td colspan="7" class="n">No sensor alerts yet.</td></tr>'}</tbody></table></div>`;
+ if(h!==lnn){lnn=h;p.innerHTML=h}}
+const _u7=update;update=function(){_u7();paintNN()};setInterval(paintNN,500);
+// ---- actions, scenarios, demo ----
+const _a7=act;act=function(a,k,i){if(a==='nno'){nnOpen=!nnOpen;if(nnOpen){repOpen=false;citOpen=false;citizen()}return update()}
+ if(a==='wh')return burst();if(a==='d7')return demo7();if(a==='o'||a==='co'||a==='v')nnOpen=false;if(a==='r')NR.length=0;return _a7(a,k,i)};
+document.getElementById('scen').insertAdjacentHTML('beforeend',[['wh','','Ward heads send now'],['d7','','Run Nagar Nigam demo']].map(([a,k,t])=>`<button data-a="${a}" data-k="${k}"${a==='d7'?' class="on"':''}>${t}</button>`).join(''));
+function demo7(){dt.forEach(clearTimeout);dt=[];act('r');[
+ [300,()=>{act('vw','b');[3,9,14,21].forEach((w,j)=>setTimeout(()=>wardSend(w),j*900));say('1 · Basti ward heads send photo complaints to the Nagar Nigam office.')}],
+ [7300,()=>say('2 · Nagar Nigam creates work orders automatically and sends them to the SDM office.')],
+ [15300,()=>say('3 · The SDM office verifies, crews fix, and each item is marked fixed. Open "Nagar Nigam" to see the report.')],[29300,()=>say('')]].forEach(([t,f])=>dt.push(setTimeout(f,t)))}
+// ---- animation ----
+(function rl(){requestAnimationFrame(rl);WH.forEach(o=>o.sp.position.set(o.g.position.x,2.1,o.g.position.z))})();
+setNight();update();
+}
+
+// ---- v8: camera CM-07 on the Basti road, plus its solar lights ----
+{
+CMN.push('Basti road');
+const x=35,z=8.9,tx=35,tz=7,k='cm7';
+S[k]=mk_('CM-07','Street camera · Basti road',900,{Feed:97});S[k].v={...S[k].base};
+const pole=box(.1,3.3,.1,0x555b60,x,1.65,z);pole.userData.k=k;const gp=new THREE.Group();gp.position.set(x,3.4,z);gp.rotation.y=Math.atan2(tx-x,tz-z);scene.add(gp);
+const hm=new THREE.MeshLambertMaterial({color:0xe8e8e8}),h=new THREE.Mesh(new THREE.BoxGeometry(.5,.28,.3),hm);h.position.z=.18;h.userData.k=k;gp.add(h);
+const ln=new THREE.Mesh(new THREE.CylinderGeometry(.1,.1,.1,12),new THREE.MeshBasicMaterial({color:0x111111}));ln.rotation.x=Math.PI/2;ln.position.z=.36;gp.add(ln);
+const hd=new THREE.Mesh(new THREE.BoxGeometry(.54,.04,.4),mt(0x333333));hd.position.set(0,.17,.2);gp.add(hd);
+// wide view cone along the road so the camera covers the lights
+const len=15,cg=new THREE.ConeGeometry(7,len,16,1,true);cg.rotateX(-Math.PI/2);cg.translate(0,0,len/2);
+const cn=new THREE.Mesh(cg,new THREE.MeshBasicMaterial({color:0x9ec5ff,transparent:true,opacity:.13,depthWrite:false,side:THREE.DoubleSide}));cn.position.set(x,3.4,z);scene.add(cn);cn.lookAt(x+4,0,7);
+pos[k]=[x,4.5,z];const m=new THREE.Mesh(new THREE.SphereGeometry(.3,16,12),new THREE.MeshBasicMaterial({color:C.ok}));m.position.set(...pos[k]);m.userData.k=k;scene.add(m);mk[k]=m;pick.push(pole,h);CAM[k]={hm,cn,gp};
+update();
+}
+</script>
+<style id="vivid">
+body{background:linear-gradient(135deg,#d7f3ee,#e3f0ff 55%,#fff4d6)}
+#panel{background:linear-gradient(180deg,var(--pane),color-mix(in srgb,var(--pane) 88%,var(--acc2)))}
+#panel h3{color:var(--acc);font-weight:700;letter-spacing:.2px}
+#panel h3:before{background:linear-gradient(var(--acc),var(--acc2));width:5px}
+button{border-color:color-mix(in srgb,var(--acc) 35%,var(--line));background:color-mix(in srgb,var(--pane) 92%,var(--acc))}
+button:hover{background:color-mix(in srgb,var(--pane) 80%,var(--acc2));border-color:var(--acc2);box-shadow:0 3px 10px rgba(10,127,194,.25)}
+button.on{background:linear-gradient(135deg,var(--acc),var(--acc2));border-color:transparent;color:#fff;box-shadow:0 3px 10px rgba(10,127,194,.35)}
+button.go{background:linear-gradient(135deg,#ff6a3d,var(--crit));border-color:transparent}
+#hud{background:rgba(255,255,255,.72)!important;box-shadow:0 6px 22px rgba(7,50,77,.18)!important}
+#stage.night #hud{background:rgba(8,18,60,.62)!important;border-color:rgba(160,190,255,.3)!important}
+#hud b{font-size:17px;letter-spacing:.2px}
+.kpi strong{color:var(--acc)}
+th{color:var(--acc)}
+tr:hover td{background:color-mix(in srgb,var(--acc2) 8%,transparent)}
+#rp,#cp,#np{box-shadow:0 10px 30px rgba(7,50,77,.25);border-color:color-mix(in srgb,var(--acc) 30%,var(--line))}
+</style></body></html>
