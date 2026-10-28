@@ -42,6 +42,8 @@ Open https://www.linkedin.com/safety/go/?url=https%3A%2F%2Flnkd.in%2FdDkT6GPH&ur
 A hosted version is available at: **_add your GitHub Pages link here_**
 
 Click **Run guided demo** for a walkthrough, or use the **Inject a scenario** buttons to trigger faults yourself.
+<img width="1920" height="843" alt="Screenshot (137)" src="https://github.com/user-attachments/assets/13864a82-9e07-4b5f-a367-8410f6c3df97" />
+
 
 ## What the demo shows
 
