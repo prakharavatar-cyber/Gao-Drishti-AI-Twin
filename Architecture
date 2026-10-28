@@ -1,0 +1,295 @@
+GaoDrishti AI: Architecture
+
+This document describes the architecture of the GaoDrishti AI digital twin in two parts:
+
+Prototype architecture: what index.html implements today (simulated data, runs in the browser).
+Target architecture: the full system planned for the pilot village and beyond.
+
+Both follow the same logical pipeline, so the prototype can be replaced layer by layer without redesigning the system.
+
+1. Logical pipeline
+Sensors and camerasCitizen reports
+Ingestion
+AI enginedetect, predict, score
+Central databasereadings, events, history
+3D digital twinand GIS dashboard
+Prioritizationand routing
+Work orders
+Officer verification
+Maintenance
+Reports and SMSSDM, Pradhan, villagers
+
+Seven stages, from field data to government action:
+
+#	Stage	Responsibility
+1	Sensors	Capture water, drain, road, light and camera data; accept citizen reports
+2	AI engine	Detect anomalies, forecast trends, compute a 0-100 risk score
+3	Central database	Store readings, alerts, work orders and maintenance history
+4	3D digital twin	Show every asset with live status; click for readings, forecast and history
+5	Govt. dashboard	GIS view with role-based access for each office
+6	Maintenance	Work orders assigned, carried out and verified
+7	Updated records	Outcome written back so history improves future prediction
+2. Alert-to-action loop
+Villagers
+SDM office
+Officer (Pradhan / Nagar Nigam)
+Work-order service
+Digital twin
+AI engine
+Sensor / Citizen
+Villagers
+SDM office
+Officer (Pradhan / Nagar Nigam)
+Work-order service
+Digital twin
+AI engine
+Sensor / Citizen
+Reading or complaint (with photo)
+Threshold check, trend slope, risk score
+Asset turns amber or red
+Create work order (priority = severity x people x importance)
+Auto-drafted report
+Same report to local office
+SMS alert
+Acknowledged
+Verify on site, dispatch crew
+Mark fixed
+Completion report
+SMS "fixed"
+Log in asset history
+
+Key behaviors:
+
+A work order is created automatically for every alert shortly after detection. An official can also create one manually from the twin.
+Every report goes to both the SDM office and the local office (Pradhan in villages, Nagar Nigam in the Basti), and an SMS goes to villagers.
+Closure sends a completion report back to the SDM and an SMS to the citizen who raised it.
+3. Prototype architecture (index.html)
+
+The prototype is a single self-contained HTML file using vanilla JavaScript and Three.js (r128, loaded from cdnjs). There is no backend: all state lives in memory and resets on reload.
+
+Browser
+Presentation
+Rule-based AI
+Core state
+Simulation layer
+Three.js sceneassets, traffic, packets
+Sensor generatortimer tick plus noise
+S: asset statereadings v, history h, status
+Fault injectorscenario buttons
+assess: thresholds
+risk score 0-100
+slope: trend forecast
+LOG: events
+WO: work orders
+Asset panel, work orders,response, sparklines
+Pradhan office, NagarNigam,Citizen app, SDM reports
+REQ and NR: citizen andward requests
+Guided demo script
+3.1 Simulation layer
+Sensor generator: on each tick, every asset's readings drift toward a normal value with small random noise, and the last 40 samples are kept as history.
+Fault injector: scenario buttons push readings past thresholds (contaminate water, block a drain, create potholes, fail lights, dry a well, over-pump a borewell, fail a sensor or camera).
+Environment toggles: rain, underground flow, and day or night.
+3.2 Core state
+Object	Purpose
+S	One entry per asset: current readings, 40-sample history, status, linked event and work order
+LOG	Alert events with timestamps for detection, work order, SDM acknowledgement and SMS delivery
+WO	Work orders with priority and status (Created, Verified, Fixed)
+REQ	Citizen requests from the Citizen app (Hindi or English text, optional photo)
+NR	Nagar Nigam ward complaints for the Basti
+3.3 Rule-based AI (assess)
+
+For each asset, assess() returns a status (ok, warn, crit), a risk score from 0 to 100, a detection message, a prediction and a recommended action.
+
+Example for water quality:
+
+Check	Warning	Critical
+pH	below 6.8	below 6.5 or above 8.5
+TDS	above 400	above 500
+Turbidity	above 3.5	above 5
+
+Risk score = the largest of three normalized terms, clamped to 0-100: max((TDS - 300) / 6, (Turb - 2) x 15, (7.2 - pH) x 60)
+
+Forecasting uses slope(): the average change per sample over the last few readings. Projecting it forward gives a time-to-threshold (for example, time to dry mark for a well).
+
+Compound risk: combining signals (low drain flow plus rising level suggests a blockage).
+
+Automation rules: a pump stops automatically below 40% well level and rationing starts; a camera that stops sending video raises an alert, report and work order; a dead sensor raises its own alert.
+
+3.4 Presentation layer
+Three.js scene: assets coloured by status, moving traffic, animated data packets from assets to offices.
+Panels: asset detail with sparkline, scenario controls, work orders, response log.
+Role views: Pradhan office monitor, Nagar Nigam monitor, Citizen app, SDM report templates (blank or filled).
+Views: whole village, and the Basti (dense settlement) with its own assets.
+Guided demo scripts: timed step sequences that fire scenarios and narrate each step.
+3.5 Priority in dense settlements
+
+In the Basti, the same fault scores higher because priority scales with severity x people served. A shared tap or open drain that serves many homes outranks the same fault in a sparse area.
+
+4. Target architecture
+Users
+Applications
+AI and ML
+Backend
+Network
+Field and edge
+ESP32 water nodepH, TDS, turbidity,level, flow
+Groundwater level sensor
+Drain flow and level node
+Road and garbage cameras
+Drones, satellite, weather
+LoRa gateway
+Wi-Fi
+4G
+FastAPI
+Ingestion and validation
+PostgreSQL / MySQL
+Work-order and routingservice
+Notification serviceSMS, email, reports
+Water AIanomaly detection
+Predictive AItime-series forecasting
+Computer VisionYOLO and OpenCV
+3D digital twinReact, Three.js
+GIS dashboardLeaflet, OpenStreetMap
+Work-order app
+Citizen app
+Excel and PDF reports
+Gram Panchayat
+Water and Sanitation Dept.
+District / SDM
+Municipal bodies
+4.1 Layers
+Layer	Components	Notes
+Field and edge	ESP32 with pH, TDS/EC, turbidity, level and flow sensors; street cameras; drones	Low-cost hybrid sensing: sensors for water, cameras for roads and garbage
+Network	LoRa, Wi-Fi, 4G	LoRa for low-power village coverage, 4G for cameras
+Backend	FastAPI, PostgreSQL or MySQL	Ingestion, validation, REST API, work-order and routing logic
+AI and ML	Python, Scikit-learn, OpenCV, YOLO	Three modules below
+Applications	React and Three.js twin, Leaflet and OSM dashboard, work-order app, citizen app, Excel and PDF export	Role-based views
+Users	Gram Panchayat, Water and Sanitation Dept., District and SDM, Municipal bodies	Jurisdiction-aware routing
+4.2 AI modules
+Module	Inputs	Method	Outputs
+Water AI	pH, TDS, turbidity, level, flow	Anomaly detection	Abnormal-quality alerts
+Predictive AI	Time series: sewage, groundwater, weather	Time-series forecasting	Depletion, shortage and overflow forecasts
+Computer Vision	Camera and drone images	YOLO and OpenCV	Potholes, garbage, waterlogging, blocked drains
+
+All three feed one prioritization step: severity x location x population affected x asset importance, which produces the work order and its recommended action.
+
+4.3 Data model (suggested)
+produces
+raises
+creates
+generates
+creates
+owns
+receives
+ASSET
+string
+id
+string
+type
+float
+lat
+float
+lon
+int
+people_served
+int
+importance
+READING
+string
+asset_id
+datetime
+ts
+json
+values
+ALERT
+int
+id
+string
+asset_id
+string
+severity
+int
+risk
+datetime
+raised
+WORK_ORDER
+int
+id
+string
+priority
+string
+status
+datetime
+created
+datetime
+verified
+datetime
+fixed
+REPORT
+int
+id
+string
+to
+datetime
+sent
+datetime
+acknowledged
+CITIZEN_REQUEST
+int
+id
+string
+category
+string
+text
+string
+photo_url
+JURISDICTION
+string
+id
+string
+level
+string
+office
+4.4 Sample sensor payload
+json
+{
+  "node_id": "WQ-01",
+  "timestamp": "2026-10-28T09:30:00Z",
+  "readings": { "pH": 7.1, "TDS": 310, "turbidity": 2.4, "level": 72, "flow": 14.2 },
+  "battery": 83,
+  "firmware": "0.1.0"
+}
+4.5 Suggested API
+Endpoint	Purpose
+POST /readings	Node uploads a reading
+GET /assets	List assets with current status
+GET /assets/{id}	Readings, forecast, history
+GET /alerts	Open alerts, filterable by jurisdiction
+POST /work-orders	Create manually
+PATCH /work-orders/{id}	Verify, assign, close
+POST /citizen-requests	Submit a complaint with photo
+GET /reports/{id}	Report text for the SDM or local office
+5. Jurisdiction-aware routing
+Area	Local office	Escalation
+Village	Gram Panchayat (Pradhan)	SDM office
+Basti / urban	Ward head, then Nagar Nigam	SDM office for verification
+Block and district	Block and District offices	State
+
+Routing is rule-based on asset location and type, so each alert reaches the office that owns the fix.
+
+6. Scalability path
+Phase	Scope	Architecture change
+1	One village, simulated data	Browser prototype (this repo)
+2	Pilot village, real sensors	Add ESP32 nodes, LoRa gateway, FastAPI and database
+3	Multiple Panchayats, district	Multi-tenant database, district dashboard, GIS integration
+4	District and state	Government system integration, large-scale predictive analytics
+
+The twin, the data flow and the work-order loop stay the same at every phase. Only the data source and storage change.
+
+7. Design principles
+Predict, don't just monitor: forecasts and compound-risk alerts come before failure.
+One integrated view: water, roads and sanitation in a single twin.
+Low cost: cheap sensors where they work, cameras where they don't.
+Close the loop: every alert ends in a verified, logged fix.
+Inclusive access: citizen reporting in Hindi or English, SMS for villagers without smartphones.
+Graceful failure: a dead sensor or camera is itself an alert.
