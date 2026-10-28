@@ -37,7 +37,7 @@ Alerts are ranked by **severity × location × population affected × asset impo
 
 ## Live demo
 
-Open `GaoDrishti_Digital_Twin.html` in any modern browser. No install or build step is needed.
+Open https://www.linkedin.com/safety/go/?url=https%3A%2F%2Flnkd.in%2FdDkT6GPH&urlhash=Rjgk&mt=XcSakoB4thrjGJBbuCgJVFNynDjCMuFcuT3WXCdU6_y6n1ZJILbzsvaW7-DNFeTCEACSK5c4eRLInMWUjSX96ZCxoFUAKFcln-zkRxVOqGCDn7bIlodDKN2gFNM&isSdui=true&lipi=urn%3Ali%3Apage%3Ad_flagship3_detail_base%3BEwLmlQMlSyGj2hbyf2VkIQ%3D%3D in any modern browser. No install or build step is needed.
 
 A hosted version is available at: **_add your GitHub Pages link here_**
 
