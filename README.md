@@ -125,6 +125,6 @@ README.md
 |---|---|
 | **Prakhar Kapoor** | Team lead |
 | **Vaishnavi Dixit** | Team member |
-| **S Rithanya** | External academic team |
+| **S Rithanya** | Team Member |
 
 VIT Bhopal University, SCAI & SBET
